@@ -108,6 +108,11 @@ function App() {
       }
 
       try {
+        if (text.trim().startsWith('<') || text.trim().startsWith('The page')) {
+          setResult({ summary: "System received an unexpected response from the analysis engine. Please verify your n8n webhook is active and returning JSON.", key_points: [] })
+          return
+        }
+
         const data = JSON.parse(text)
         const source = data.output || data;
         const extractedSummary = source.summary || source.text || source.output || source.content || source.result;
@@ -116,7 +121,8 @@ function App() {
           summary: extractedSummary || (typeof data === 'string' ? data : 'No summary found.'),
           key_points: source.key_points || []
         })
-      } catch {
+      } catch (e) {
+        console.warn('Failed to parse response as JSON:', e)
         setResult({ summary: text, key_points: [] })
       }
     } catch (err) {
