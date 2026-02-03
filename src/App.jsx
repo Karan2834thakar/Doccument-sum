@@ -11,20 +11,11 @@ import {
   FileUp,
   BrainCircuit,
   Terminal,
-  ChevronRight,
   ShieldCheck,
   Zap,
-  Lock,
-  MessageSquare,
-  BarChart3,
-  Search,
   Check,
   X,
   User,
-  KeyRound,
-  Mail,
-  Eye,
-  EyeOff,
   LogOut
 } from 'lucide-react'
 
@@ -37,16 +28,15 @@ function App() {
   const [showDemo, setShowDemo] = useState(false)
   const [user, setUser] = useState(null)
   const [showAuth, setShowAuth] = useState(false)
-  const [authMode, setAuthMode] = useState('login') // 'login' or 'register'
-  const [authForm, setAuthForm] = useState({ email: '', password: '', name: '' })
+  const [userName, setUserName] = useState('')
   const [authError, setAuthError] = useState(null)
   const [demoText, setDemoText] = useState('')
   const uploadSectionRef = useRef(null)
 
   useEffect(() => {
-    const savedSession = localStorage.getItem('axon_session')
-    if (savedSession) {
-      setUser(JSON.parse(savedSession))
+    const savedName = localStorage.getItem('axon_user_name')
+    if (savedName) {
+      setUser({ name: savedName })
     }
   }, [])
 
@@ -139,7 +129,6 @@ function App() {
 
   const scrollToTool = () => {
     if (!user) {
-      setAuthMode('login')
       setShowAuth(true)
       return
     }
@@ -147,30 +136,16 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
-  const handleAuth = async (e) => {
+  const handleAuth = (e) => {
     e.preventDefault()
-    setAuthError(null)
-
-    try {
-      const endpoint = authMode === 'register' ? '/api/register' : '/api/login'
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(authForm)
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed')
-      }
-
-      localStorage.setItem('axon_session', JSON.stringify(data))
-      setUser(data)
-      setShowAuth(false)
-    } catch (err) {
-      setAuthError(err.message)
+    if (!userName.trim()) {
+      setAuthError('Please enter your name.')
+      return
     }
+    const userData = { name: userName.trim() }
+    localStorage.setItem('axon_user_name', userData.name)
+    setUser(userData)
+    setShowAuth(false)
   }
 
   const handleViewDemo = () => {
@@ -217,7 +192,7 @@ function App() {
                         <span className="text-sm font-bold text-slate-200">{user.name}</span>
                       </div>
                       <button
-                        onClick={() => { localStorage.removeItem('axon_session'); setUser(null); setView('landing'); }}
+                        onClick={() => { localStorage.removeItem('axon_user_name'); setUser(null); setView('landing'); }}
                         className="p-2.5 rounded-xl glass hover:bg-red-500/10 hover:text-red-400 transition-all"
                       >
                         <LogOut className="w-5 h-5" />
@@ -225,7 +200,7 @@ function App() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => { setAuthMode('login'); setShowAuth(true); }}
+                      onClick={() => setShowAuth(true)}
                       className="px-6 py-2.5 rounded-xl glass hover:bg-white/10 text-white font-bold transition-all"
                     >
                       Login
@@ -789,60 +764,28 @@ function App() {
 
               <div className="text-center mb-10">
                 <div className="w-16 h-16 rounded-[20px] bg-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-600/40">
-                  <KeyRound className="w-8 h-8 text-white" />
+                  <User className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-3xl font-black text-white italic tracking-tight mb-2">
-                  {authMode === 'login' ? 'Welcome Back' : 'Join Axon'}
+                  Welcome to Axon
                 </h3>
                 <p className="text-slate-400 font-medium">
-                  {authMode === 'login' ? 'Access your intelligence hub' : 'Start your journey with neural analysis'}
+                  Enter your name to start analyzing
                 </p>
               </div>
 
               <form onSubmit={handleAuth} className="space-y-6">
-                {authMode === 'register' && (
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                      <input
-                        type="text"
-                        required
-                        placeholder="John Doe"
-                        className="w-full h-14 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
-                        value={authForm.name}
-                        onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
-
                 <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-4">Your Name</label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
-                      type="email"
+                      type="text"
                       required
-                      placeholder="you@example.com"
+                      placeholder="e.g. Karan"
                       className="w-full h-14 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
-                      value={authForm.email}
-                      onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      className="w-full h-14 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
-                      value={authForm.password}
-                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
                     />
                   </div>
                 </div>
@@ -862,17 +805,9 @@ function App() {
                   type="submit"
                   className="w-full h-16 rounded-[20px] bg-white text-slate-950 font-black text-lg hover:bg-slate-200 transition-all shadow-xl shadow-white/5 active:scale-95"
                 >
-                  {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                  Enter Tool
                 </button>
               </form>
-
-              <div className="mt-8 text-center text-slate-500 text-sm font-medium">
-                {authMode === 'login' ? (
-                  <>Don't have an account? <button onClick={() => { setAuthMode('register'); setAuthError(null); }} className="text-indigo-400 font-bold hover:underline">Register now</button></>
-                ) : (
-                  <>Already have an account? <button onClick={() => { setAuthMode('login'); setAuthError(null); }} className="text-indigo-400 font-bold hover:underline">Sign in</button></>
-                )}
-              </div>
             </motion.div>
           </motion.div>
         )}
