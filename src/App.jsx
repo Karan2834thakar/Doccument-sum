@@ -16,8 +16,13 @@ import {
   Check,
   X,
   User,
-  LogOut
+  LogOut,
+  Lock,
+  History,
+  Trash2
 } from 'lucide-react'
+import { authAPI, summaryAPI } from './api'
+import Model3D from './components/Model3D'
 
 function App() {
   const [view, setView] = useState('landing') // 'landing' or 'tool'
@@ -29,14 +34,21 @@ function App() {
   const [user, setUser] = useState(null)
   const [showAuth, setShowAuth] = useState(false)
   const [userName, setUserName] = useState('')
+  const [userEmail, setUserEmail] = useState('')
+  const [userPassword, setUserPassword] = useState('')
+  const [isLogin, setIsLogin] = useState(true)
   const [authError, setAuthError] = useState(null)
   const [demoText, setDemoText] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
+  const [summaries, setSummaries] = useState([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
   const uploadSectionRef = useRef(null)
 
   useEffect(() => {
-    const savedName = localStorage.getItem('axon_user_name')
-    if (savedName) {
-      setUser({ name: savedName })
+    const token = localStorage.getItem('token')
+    const userData = localStorage.getItem('user')
+    if (token && userData) {
+      setUser(JSON.parse(userData))
     }
   }, [])
 
@@ -60,14 +72,16 @@ function App() {
 
     const allowedTypes = [
       'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/plain',
+      'text/csv'
     ]
-    const allowedExtensions = ['.pdf', '.docx', '.txt']
+    const allowedExtensions = ['.pdf', '.txt', '.csv', '.xlsx', '.xls']
     const fileExtension = selectedFile.name.slice((selectedFile.name.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase()
 
     if (!allowedTypes.includes(selectedFile.type) && !allowedExtensions.includes(`.${fileExtension}`)) {
-      setError('Please upload a PDF, DOCX, or TXT file.')
+      setError('Please upload a PDF, TXT, CSV, or XLSX file.')
       setFile(null)
       return
     }
@@ -91,7 +105,7 @@ function App() {
     formData.append('data', file)
 
     try {
-      const webhookUrl = 'https://karanthakar.app.n8n.cloud/webhook/webhook-test/document-summary?summaryLength=medium&language=English'
+      const webhookUrl = 'https://n8n.srv1202847.hstgr.cloud/webhook/62728a15-7788-41dd-baf0-d57dbf1fed42'
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
@@ -107,23 +121,154 @@ function App() {
         throw new Error('The n8n workflow finished but returned no data.')
       }
 
-      try {
-        if (text.trim().startsWith('<') || text.trim().startsWith('The page')) {
-          setResult({ summary: "System received an unexpected response from the analysis engine. Please verify your n8n webhook is active and returning JSON.", key_points: [] })
-          return
+      if (text.trim().startsWith('<') || text.trim().startsWith('The page')) {
+        setResult({ summary: "System received an unexpected response. Please verify your n8n workflow is active.", key_points: [] })
+        return
+      }
+
+      const cleanResponseText = (rawText) => {
+        if (!rawText || typeof rawText !== 'string') return rawText;
+        let clean = rawText.trim();
+
+        // Aggressively strip n8n IIFE wrappers: (() => { ... })()
+        if (clean.startsWith('(() =>') || clean.startsWith('(function')) {
+          // Try to extract what's being returned
+          const returnMatch = clean.match(/return\s+([^;]+);?\s*}\s*\)\s*\(\s*\)$/s);
+          if (returnMatch) {
+            clean = returnMatch[1].trim();
+            // Remove quotes if it's a string literal
+            if ((clean.startsWith('"') && clean.endsWith('"')) ||
+              (clean.startsWith("'") && clean.endsWith("'")) ||
+              (clean.startsWith('`') && clean.endsWith('`'))) {
+              clean = clean.slice(1, -1);
+            }
+          }
         }
 
-        const data = JSON.parse(text)
-        const source = data.output || data;
-        const extractedSummary = source.summary || source.text || source.output || source.content || source.result;
+        // HTML to text
+        clean = clean.replace(/<(div|p|br|hr|h[1-6]|li)[^>]*>/gi, '\n');
+        clean = clean.replace(/<[^>]*>/g, '');
+        clean = clean.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
+        // Unescape common escape sequences
+        clean = clean.replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, '  ');
+
+        return clean.trim();
+      };
+
+      const formatJsonAsText = (obj, indent = '') => {
+        if (!obj || typeof obj !== 'object') return String(obj || '');
+
+        let result = [];
+
+        for (const [key, value] of Object.entries(obj)) {
+          // Skip internal fields
+          if (key === 'status' || key === 'processed_at') continue;
+
+          // Format the key nicely
+          const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+          if (Array.isArray(value)) {
+            if (value.length > 0) {
+              result.push(`${indent}${label}:`);
+              value.forEach((item, idx) => {
+                if (typeof item === 'object') {
+                  result.push(formatJsonAsText(item, indent + '  '));
+                } else {
+                  result.push(`${indent}  • ${item}`);
+                }
+              });
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            result.push(`${indent}${label}:`);
+            result.push(formatJsonAsText(value, indent + '  '));
+          } else if (value) {
+            result.push(`${indent}${label}: ${value}`);
+          }
+        }
+
+        return result.join('\n');
+      };
+
+      const findDeepestValue = (obj, targetKeys) => {
+        if (!obj || typeof obj !== 'object') return null;
+        for (const key of targetKeys) {
+          if (obj[key] && typeof obj[key] === 'string' && obj[key].trim().length > 10) return obj[key];
+        }
+        for (const key in obj) {
+          if (obj[key] && typeof obj[key] === 'object') {
+            const found = findDeepestValue(obj[key], targetKeys);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const findDeepestArray = (obj, targetKeys) => {
+        if (!obj || typeof obj !== 'object') return null;
+        for (const key of targetKeys) {
+          if (Array.isArray(obj[key]) && obj[key].length > 0) return obj[key];
+        }
+        for (const key in obj) {
+          if (obj[key] && typeof obj[key] === 'object') {
+            const found = findDeepestArray(obj[key], targetKeys);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      let data;
+      try {
+        data = JSON.parse(text)
+
+        if (Array.isArray(data)) data = data[0] || {}
+        if (data.json && typeof data.json === 'object') data = data.json
+
+        const summaryKeys = ['summary', 'professional_summary', 'professionalSummary', 'overview', 'description', 'text', 'output', 'content', 'result', 'message'];
+        const pointKeys = ['key_points', 'points', 'highlights', 'insights', 'result'];
+
+        const rawSummary = findDeepestValue(data, summaryKeys);
+        const extractedKeyPoints = findDeepestArray(data, pointKeys);
+
+        let finalSummary;
+        if (rawSummary) {
+          finalSummary = cleanResponseText(rawSummary);
+        } else if (typeof data === 'string') {
+          finalSummary = cleanResponseText(data);
+        } else {
+          // No specific summary field found - format the entire JSON as text
+          finalSummary = formatJsonAsText(data);
+        }
+
+        const summaryData = {
+          summary: finalSummary || 'Analysis complete.',
+          key_points: extractedKeyPoints || []
+        }
+        setResult(summaryData)
+
+        // Save to backend if logged in
+        if (user) {
+          try {
+            await summaryAPI.save(file.name, file.type || 'document', summaryData.summary, summaryData.key_points)
+          } catch (saveErr) {
+            console.error('Failed to save summary:', saveErr)
+          }
+        }
+      } catch (parseError) {
+        const fallbackSummary = cleanResponseText(text) || 'Analysis complete.'
         setResult({
-          summary: extractedSummary || (typeof data === 'string' ? data : 'No summary found.'),
-          key_points: source.key_points || []
+          summary: fallbackSummary,
+          key_points: []
         })
-      } catch (e) {
-        console.warn('Failed to parse response as JSON:', e)
-        setResult({ summary: text, key_points: [] })
+
+        // Save to backend if logged in
+        if (user) {
+          try {
+            await summaryAPI.save(file.name, file.type || 'document', fallbackSummary, [])
+          } catch (saveErr) {
+            console.error('Failed to save summary:', saveErr)
+          }
+        }
       }
     } catch (err) {
       console.error('Upload error:', err)
@@ -142,16 +287,59 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
-  const handleAuth = (e) => {
+  const handleAuth = async (e) => {
     e.preventDefault()
-    if (!userName.trim()) {
-      setAuthError('Please enter your name.')
-      return
+    setAuthError(null)
+    setLoading(true)
+    try {
+      let res;
+      if (isLogin) {
+        res = await authAPI.login(userEmail, userPassword)
+      } else {
+        if (!userName.trim()) throw new Error('Please enter your name.')
+        res = await authAPI.register(userName.trim(), userEmail, userPassword)
+      }
+
+      localStorage.setItem('token', res.token)
+      localStorage.setItem('user', JSON.stringify(res.user))
+      setUser(res.user)
+      setShowAuth(false)
+      setUserName('')
+      setUserEmail('')
+      setUserPassword('')
+    } catch (err) {
+      setAuthError(err.message)
+    } finally {
+      setLoading(false)
     }
-    const userData = { name: userName.trim() }
-    localStorage.setItem('axon_user_name', userData.name)
-    setUser(userData)
-    setShowAuth(false)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+    setView('landing')
+  }
+
+  const fetchHistory = async () => {
+    setLoadingHistory(true)
+    try {
+      const res = await summaryAPI.getAll()
+      setSummaries(res.summaries)
+    } catch (err) {
+      console.error('History fetch error:', err)
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
+  const deleteSummary = async (id) => {
+    try {
+      await summaryAPI.delete(id)
+      setSummaries(summaries.filter(s => s._id !== id))
+    } catch (err) {
+      console.error('Delete error:', err)
+    }
   }
 
   const handleViewDemo = () => {
@@ -193,13 +381,21 @@ function App() {
                 <div className="flex items-center gap-4">
                   {user ? (
                     <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => { fetchHistory(); setShowHistory(true); }}
+                        className="p-2.5 rounded-xl glass hover:bg-white/10 text-slate-400 hover:text-indigo-400 transition-all"
+                        title="View History"
+                      >
+                        <History className="w-5 h-5" />
+                      </button>
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
                         <User className="w-4 h-4 text-indigo-400" />
                         <span className="text-sm font-bold text-slate-200">{user.name}</span>
                       </div>
                       <button
-                        onClick={() => { localStorage.removeItem('axon_user_name'); setUser(null); setView('landing'); }}
+                        onClick={handleLogout}
                         className="p-2.5 rounded-xl glass hover:bg-red-500/10 hover:text-red-400 transition-all"
+                        title="Logout"
                       >
                         <LogOut className="w-5 h-5" />
                       </button>
@@ -223,7 +419,15 @@ function App() {
             </nav>
 
             {/* Hero Section */}
-            <section className="relative pt-44 pb-20 px-6 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
+            <section className="relative pt-32 pb-20 px-6 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
+
+              {/* Central Visualization Area - Moved Up */}
+              <div className="w-full max-w-4xl h-[350px] relative mb-4">
+                <div className="absolute inset-0 z-20 flex items-center justify-center">
+                  <Model3D modelUrl="/models/model.obj" />
+                </div>
+              </div>
+
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -274,27 +478,6 @@ function App() {
                   <span>View Demo</span>
                 </button>
               </motion.div>
-
-              {/* Hero Decorative Elements */}
-              <div className="mt-20 w-full max-w-5xl relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 blur opacity-20 animate-pulse"></div>
-                <div className="relative glass-light rounded-[32px] overflow-hidden border border-white/20 aspect-[16/9] md:aspect-[21/9] flex items-center justify-center p-8">
-                  <div className="grid grid-cols-3 gap-6 w-full opacity-40">
-                    <div className="h-4 bg-slate-900 rounded-full w-3/4"></div>
-                    <div className="h-4 bg-slate-900 rounded-full w-full"></div>
-                    <div className="h-4 bg-slate-900 rounded-full w-1/2"></div>
-                    <div className="h-4 bg-slate-900 rounded-full w-full col-span-2"></div>
-                    <div className="h-16 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl col-span-3"></div>
-                  </div>
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-600/50"
-                  >
-                    <FileText className="w-12 h-12 text-white" />
-                  </motion.div>
-                </div>
-              </div>
             </section>
 
             {/* Features Section */}
@@ -502,7 +685,7 @@ function App() {
                                 <p className="text-2xl mb-3 text-white font-bold tracking-tight italic">
                                   Drop your intelligence here
                                 </p>
-                                <p className="text-slate-500 font-medium">PDF, DOCX, TXT files accepted</p>
+                                <p className="text-slate-500 font-medium">PDF, TXT, CSV, XLSX files accepted</p>
                               </>
                             )}
                           </div>
@@ -510,7 +693,7 @@ function App() {
                             id="dropzone-file"
                             type="file"
                             className="hidden"
-                            accept=".pdf,.docx,.txt"
+                            accept=".pdf,.txt,.csv,.xlsx,.xls"
                             onChange={handleFileChange}
                             disabled={loading}
                           />
@@ -598,7 +781,7 @@ function App() {
                           <div className="w-1 h-3 bg-indigo-500"></div>
                           <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">Executive Summary</h3>
                         </div>
-                        <p className="text-2xl text-slate-200 leading-[1.6] font-medium opacity-90 relative z-10">
+                        <p className="text-2xl text-slate-200 leading-[1.6] font-medium opacity-90 relative z-10 whitespace-pre-wrap">
                           {result.summary}
                         </p>
                         <div className="absolute bottom-10 right-10 opacity-5 pointer-events-none">
@@ -773,25 +956,57 @@ function App() {
                   <User className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-3xl font-black text-white italic tracking-tight mb-2">
-                  Welcome to Axon
+                  {isLogin ? 'Welcome Back' : 'Create Account'}
                 </h3>
                 <p className="text-slate-400 font-medium">
-                  Enter your name to start analyzing
+                  {isLogin ? 'Login to access your summaries' : 'Register to save your analysis history'}
                 </p>
               </div>
 
-              <form onSubmit={handleAuth} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-4">Your Name</label>
+              <form onSubmit={handleAuth} className="space-y-4">
+                {!isLogin && (
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Karan Thakar"
+                        className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
-                      type="text"
+                      type="email"
                       required
-                      placeholder="e.g. Karan"
-                      className="w-full h-14 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
+                      placeholder="karan@example.com"
+                      className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
+                      value={userPassword}
+                      onChange={(e) => setUserPassword(e.target.value)}
                     />
                   </div>
                 </div>
@@ -800,25 +1015,130 @@ function App() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 text-red-500 text-sm font-bold bg-red-500/10 p-4 rounded-xl border border-red-500/20"
+                    className="flex items-center gap-2 text-red-500 text-xs font-bold bg-red-500/10 p-3 rounded-xl border border-red-500/20"
                   >
-                    <AlertCircle className="w-4 h-4" />
+                    <AlertCircle className="w-3.5 h-3.5" />
                     <span>{authError}</span>
                   </motion.div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full h-16 rounded-[20px] bg-white text-slate-950 font-black text-lg hover:bg-slate-200 transition-all shadow-xl shadow-white/5 active:scale-95"
+                  disabled={loading}
+                  className="w-full h-14 rounded-xl bg-white text-slate-950 font-black text-md hover:bg-indigo-50 transition-all shadow-xl shadow-white/5 active:scale-95 disabled:opacity-50 mt-2"
                 >
-                  Enter Tool
+                  {loading ? 'Processing...' : isLogin ? 'Login to Axon' : 'Create Account'}
                 </button>
+
+                <p className="text-center text-sm text-slate-500 pt-2">
+                  {isLogin ? "Don't have an account? " : "Already have an account? "}
+                  <button
+                    type="button"
+                    onClick={() => { setIsLogin(!isLogin); setAuthError(null); }}
+                    className="text-indigo-400 font-bold hover:underline"
+                  >
+                    {isLogin ? 'Sign Up' : 'Login'}
+                  </button>
+                </p>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+
+      {/* History Modal Overlay */}
+      <AnimatePresence>
+        {showHistory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] flex items-center justify-center p-6 backdrop-blur-2xl bg-slate-950/80"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-4xl glass rounded-[40px] overflow-hidden border-white/10 shadow-3xl p-10 flex flex-col max-h-[85vh]"
+            >
+              <button
+                onClick={() => setShowHistory(false)}
+                className="absolute top-8 right-8 w-10 h-10 rounded-full glass hover:bg-white/10 flex items-center justify-center text-slate-400 z-10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <History className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-white italic tracking-tight">Analysis History</h3>
+                  <p className="text-slate-500 text-sm font-medium">Manage your past executive summaries</p>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                {loadingHistory ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <BrainCircuit className="w-10 h-10 text-indigo-500/50 animate-spin" />
+                  </div>
+                ) : summaries.length === 0 ? (
+                  <div className="h-40 flex flex-col items-center justify-center text-slate-600 gap-4">
+                    <FileText className="w-12 h-12 opacity-20" />
+                    <p className="font-bold italic">No history found</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {summaries.map((s) => (
+                      <motion.div
+                        layout
+                        key={s._id}
+                        className="group glass p-6 rounded-3xl border-white/5 hover:border-indigo-500/30 transition-all bg-white/[0.02]"
+                      >
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase">
+                                {s.fileType || 'Doc'}
+                              </span>
+                              <h4 className="font-black text-white italic">{s.fileName}</h4>
+                              <span className="text-slate-600 text-[10px] ml-2">
+                                {new Date(s.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-slate-400 text-sm italic line-clamp-2 mb-3">
+                              {s.summary}
+                            </p>
+                            <button
+                              onClick={() => {
+                                setResult({ summary: s.summary, key_points: s.keyPoints });
+                                setView('tool');
+                                setShowHistory(false);
+                              }}
+                              className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group/btn"
+                            >
+                              View Full Analysis
+                              <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => deleteSummary(s._id)}
+                            className="p-2 rounded-xl glass text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div >
   )
 }
 
