@@ -355,6 +355,88 @@ function App() {
         <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-blue-600/5 blur-[100px] animate-blob animation-delay-4000"></div>
       </div>
 
+      {/* Unified Nav */}
+      <nav className={`fixed top-0 left-0 w-full z-50 px-4 md:px-10 h-20 md:h-24 glass backdrop-blur-xl border-b border-white/5 transition-all duration-500 ${showDemo ? 'blur-md pointer-events-none' : ''}`}>
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('landing')}>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+              <Sparkles className="w-6 h-6 md:w-7 md:h-7 text-indigo-500" />
+            </div>
+            <span className="text-xl md:text-2xl font-black tracking-tighter text-white">Axon</span>
+          </div>
+
+          {/* Desktop Navigation Links */}
+          {view === 'landing' && (
+            <div className="hidden lg:flex items-center gap-8">
+              {[
+                { name: 'Features', id: 'features' },
+                { name: 'Process', id: 'process' },
+                { name: 'Security', id: 'security' }
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    const el = document.getElementById(item.id);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="text-sm font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 md:gap-4">
+            {user ? (
+              <div className="flex items-center gap-2 md:gap-4">
+                <button
+                  onClick={() => { fetchHistory(); setShowHistory(true); }}
+                  className="p-2 md:p-2.5 rounded-xl glass hover:bg-white/10 text-slate-400 hover:text-indigo-400 transition-all"
+                  title="View History"
+                >
+                  <History className="w-5 h-5" />
+                </button>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                  <User className="w-4 h-4 text-indigo-400" />
+                  <span className="text-sm font-bold text-slate-200">{user.name}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 md:p-2.5 rounded-xl glass hover:bg-red-500/10 hover:text-red-400 transition-all font-bold"
+                  title="Logout"
+                >
+                  <LogOut className="w-5 h-5 md:hidden" />
+                  <span className="hidden md:block text-[10px] uppercase tracking-widest">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl glass hover:bg-white/10 text-white font-bold transition-all text-sm md:text-base"
+              >
+                Login
+              </button>
+            )}
+            {view === 'landing' ? (
+              <button
+                onClick={scrollToTool}
+                className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors shadow-lg shadow-white/10 text-sm md:text-base active:scale-95"
+              >
+                {user ? (window.innerWidth < 640 ? 'Tool' : 'Open Tool') : 'Start'}
+              </button>
+            ) : (
+              <button
+                onClick={() => setView('landing')}
+                className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl border border-white/5 glass hover:bg-white/10 text-slate-400 text-sm font-bold transition-all flex items-center gap-2 active:scale-95"
+              >
+                <span>Home</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
+
       <AnimatePresence mode="wait">
         {view === 'landing' ? (
           <motion.div
@@ -364,54 +446,6 @@ function App() {
             exit={{ opacity: 0, scale: 0.98 }}
             className={`relative z-10 transition-all duration-500 ${showDemo ? 'blur-md scale-95 pointer-events-none' : ''}`}
           >
-            {/* Nav */}
-            <nav className="fixed top-0 left-0 w-full z-50 px-4 md:px-10 h-20 md:h-24 glass backdrop-blur-xl border-b border-white/5">
-              <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center shadow-2xl">
-                    <Sparkles className="w-6 h-6 md:w-7 md:h-7 text-indigo-500" />
-                  </div>
-                  <span className="text-xl md:text-2xl font-black tracking-tighter text-white">Axon</span>
-                </div>
-                <div className="flex items-center gap-2 md:gap-4">
-                  {user ? (
-                    <div className="flex items-center gap-2 md:gap-4">
-                      <button
-                        onClick={() => { fetchHistory(); setShowHistory(true); }}
-                        className="p-2 md:p-2.5 rounded-xl glass hover:bg-white/10 text-slate-400 hover:text-indigo-400 transition-all"
-                        title="View History"
-                      >
-                        <History className="w-5 h-5" />
-                      </button>
-                      <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                        <User className="w-4 h-4 text-indigo-400" />
-                        <span className="text-sm font-bold text-slate-200">{user.name}</span>
-                      </div>
-                      <button
-                        onClick={handleLogout}
-                        className="p-2 md:p-2.5 rounded-xl glass hover:bg-red-500/10 hover:text-red-400 transition-all"
-                        title="Logout"
-                      >
-                        <LogOut className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowAuth(true)}
-                      className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl glass hover:bg-white/10 text-white font-bold transition-all text-sm md:text-base"
-                    >
-                      Login
-                    </button>
-                  )}
-                  <button
-                    onClick={scrollToTool}
-                    className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors shadow-lg shadow-white/10 text-sm md:text-base"
-                  >
-                    {user ? (window.innerWidth < 640 ? 'Tool' : 'Open Tool') : 'Start'}
-                  </button>
-                </div>
-              </div>
-            </nav>
 
             {/* Hero Section */}
             <section className="relative pt-28 md:pt-40 pb-16 md:pb-20 px-4 md:px-6 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
@@ -609,23 +643,6 @@ function App() {
             className="relative z-10 max-w-4xl mx-auto pt-32 md:pt-40 pb-16 md:pb-20 px-4 md:px-6 min-h-screen"
             ref={uploadSectionRef}
           >
-            {/* Tool Nav Overlay */}
-            <div className="fixed top-0 left-0 w-full h-20 px-4 md:px-6 z-40 pointer-events-none">
-              <div className="max-w-7xl mx-auto h-full flex items-center justify-between pointer-events-auto border-b border-white/5 glass backdrop-blur-xl">
-                <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setView('landing')}>
-                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-indigo-500" />
-                  </div>
-                  <span className="text-lg md:text-xl font-bold tracking-tight text-white font-black italic">Axon</span>
-                </div>
-                <button
-                  onClick={() => setView('landing')}
-                  className="h-9 md:h-10 px-4 md:px-5 rounded-xl border border-white/5 glass hover:bg-white/10 text-slate-400 text-xs md:text-sm font-bold transition-all flex items-center gap-2 active:scale-95"
-                >
-                  <span>Back to Home</span>
-                </button>
-              </div>
-            </div>
 
             <div className="parallax-inner space-y-8 md:space-y-12">
               <div className="text-center md:text-left">
@@ -1135,7 +1152,7 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </div >
   )
 }
 
