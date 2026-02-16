@@ -1,0 +1,56 @@
+﻿
+> doccument-sum@0.0.0 lint
+> eslint .
+
+
+C:\Users\karan\Doccument-sum\backend\config\db.js
+   1:18  error  'require' is not defined  no-undef
+   5:32  error  'process' is not defined  no-undef
+   9:9   error  'process' is not defined  no-undef
+  13:1   error  'module' is not defined   no-undef
+
+C:\Users\karan\Doccument-sum\backend\middleware\auth.js
+   1:13  error  'require' is not defined           no-undef
+  11:43  error  'process' is not defined           no-undef
+  14:14  error  'error' is defined but never used  no-unused-vars
+  19:1   error  'module' is not defined            no-undef
+
+C:\Users\karan\Doccument-sum\backend\models\Summary.js
+   1:18  error  'require' is not defined  no-undef
+  34:1   error  'module' is not defined   no-undef
+
+C:\Users\karan\Doccument-sum\backend\models\User.js
+   1:18  error  'require' is not defined  no-undef
+   2:16  error  'require' is not defined  no-undef
+  41:1   error  'module' is not defined   no-undef
+
+C:\Users\karan\Doccument-sum\backend\routes\auth.js
+   1:17  error  'require' is not defined  no-undef
+   3:13  error  'require' is not defined  no-undef
+   4:14  error  'require' is not defined  no-undef
+  22:54  error  'process' is not defined  no-undef
+  58:54  error  'process' is not defined  no-undef
+  76:1   error  'module' is not defined   no-undef
+
+C:\Users\karan\Doccument-sum\backend\routes\summaries.js
+   1:17  error  'require' is not defined  no-undef
+   3:24  error  'require' is not defined  no-undef
+   4:17  error  'require' is not defined  no-undef
+  66:1   error  'module' is not defined   no-undef
+
+C:\Users\karan\Doccument-sum\backend\server.js
+   1:1   error  'require' is not defined          no-undef
+   2:17  error  'require' is not defined          no-undef
+   3:14  error  'require' is not defined          no-undef
+   4:19  error  'require' is not defined          no-undef
+  16:22  error  'require' is not defined          no-undef
+  17:27  error  'require' is not defined          no-undef
+  25:25  error  'next' is defined but never used  no-unused-vars
+  30:14  error  'process' is not defined          no-undef
+
+C:\Users\karan\Doccument-sum\src\App.jsx
+  174:36  error  'idx' is defined but never used         no-unused-vars
+  257:16  error  'parseError' is defined but never used  no-unused-vars
+
+Γ£û 33 problems (33 errors, 0 warnings)
+

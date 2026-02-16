@@ -6,6 +6,20 @@ import * as THREE from 'three'
 
 function LoadedModel({ url }) {
     const obj = useLoader(OBJLoader, url)
+    const [scale, setScale] = React.useState(11)
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setScale(7) // Smaller for mobile
+            } else {
+                setScale(11) // Original for desktop
+            }
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     // Apply materials once when the object is loaded
     useMemo(() => {
@@ -30,13 +44,13 @@ function LoadedModel({ url }) {
         }
     })
 
-    // Model vertices are ~0.1 to 0.2, so scale 10-12x is appropriate
+    // Model vertices are ~0.1 to 0.2
     return (
         <Center>
             <primitive
                 ref={meshRef}
                 object={obj}
-                scale={11}
+                scale={scale}
             />
         </Center>
     )
@@ -44,6 +58,21 @@ function LoadedModel({ url }) {
 
 function NeuralSphere() {
     const meshRef = useRef()
+    const [size, setSize] = React.useState(1.0)
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setSize(0.7)
+            } else {
+                setSize(1.0)
+            }
+        }
+        handleResize()
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
     useFrame((state) => {
         const t = state.clock.getElapsedTime()
         meshRef.current.rotation.x = t * 0.2
@@ -52,12 +81,12 @@ function NeuralSphere() {
 
     return (
         <mesh ref={meshRef}>
-            <sphereGeometry args={[1.0, 64, 64]} />
+            <sphereGeometry args={[size, 64, 64]} />
             <MeshDistortMaterial
                 color="#6366f1"
                 speed={2}
                 distort={0.4}
-                radius={1.0}
+                radius={size}
                 metalness={0.8}
                 roughness={0.2}
             />

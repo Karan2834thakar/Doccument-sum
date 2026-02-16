@@ -171,7 +171,7 @@ function App() {
           if (Array.isArray(value)) {
             if (value.length > 0) {
               result.push(`${indent}${label}:`);
-              value.forEach((item, idx) => {
+              value.forEach((item) => {
                 if (typeof item === 'object') {
                   result.push(formatJsonAsText(item, indent + '  '));
                 } else {
@@ -254,7 +254,7 @@ function App() {
             console.error('Failed to save summary:', saveErr)
           }
         }
-      } catch (parseError) {
+      } catch {
         const fallbackSummary = cleanResponseText(text) || 'Analysis complete.'
         setResult({
           summary: fallbackSummary,
@@ -365,36 +365,31 @@ function App() {
             className={`relative z-10 transition-all duration-500 ${showDemo ? 'blur-md scale-95 pointer-events-none' : ''}`}
           >
             {/* Nav */}
-            <nav className="fixed top-0 w-full h-20 border-b border-white/5 glass z-50 px-6 backdrop-blur-xl">
+            <nav className="fixed top-0 left-0 w-full z-50 px-4 md:px-10 h-20 md:h-24 glass backdrop-blur-xl border-b border-white/5">
               <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
-                <div className="flex items-center gap-2 group cursor-pointer">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:rotate-12 transition-transform">
-                    <Sparkles className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center shadow-2xl">
+                    <Sparkles className="w-6 h-6 md:w-7 md:h-7 text-indigo-500" />
                   </div>
-                  <span className="text-xl font-bold tracking-tight text-white">Axon<span className="text-indigo-500">.</span></span>
+                  <span className="text-xl md:text-2xl font-black tracking-tighter text-white">Axon</span>
                 </div>
-                <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
-                  <a href="#features" className="hover:text-white transition-colors">Features</a>
-                  <a href="#process" className="hover:text-white transition-colors">How it works</a>
-                  <a href="#security" className="hover:text-white transition-colors">Security</a>
-                </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4">
                   {user ? (
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 md:gap-4">
                       <button
                         onClick={() => { fetchHistory(); setShowHistory(true); }}
-                        className="p-2.5 rounded-xl glass hover:bg-white/10 text-slate-400 hover:text-indigo-400 transition-all"
+                        className="p-2 md:p-2.5 rounded-xl glass hover:bg-white/10 text-slate-400 hover:text-indigo-400 transition-all"
                         title="View History"
                       >
                         <History className="w-5 h-5" />
                       </button>
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                      <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
                         <User className="w-4 h-4 text-indigo-400" />
                         <span className="text-sm font-bold text-slate-200">{user.name}</span>
                       </div>
                       <button
                         onClick={handleLogout}
-                        className="p-2.5 rounded-xl glass hover:bg-red-500/10 hover:text-red-400 transition-all"
+                        className="p-2 md:p-2.5 rounded-xl glass hover:bg-red-500/10 hover:text-red-400 transition-all"
                         title="Logout"
                       >
                         <LogOut className="w-5 h-5" />
@@ -403,26 +398,26 @@ function App() {
                   ) : (
                     <button
                       onClick={() => setShowAuth(true)}
-                      className="px-6 py-2.5 rounded-xl glass hover:bg-white/10 text-white font-bold transition-all"
+                      className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl glass hover:bg-white/10 text-white font-bold transition-all text-sm md:text-base"
                     >
                       Login
                     </button>
                   )}
                   <button
                     onClick={scrollToTool}
-                    className="px-6 py-2.5 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors shadow-lg shadow-white/10"
+                    className="px-4 md:px-6 py-2 md:py-2.5 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-200 transition-colors shadow-lg shadow-white/10 text-sm md:text-base"
                   >
-                    {user ? 'Open Tool' : 'Get Started'}
+                    {user ? (window.innerWidth < 640 ? 'Tool' : 'Open Tool') : 'Start'}
                   </button>
                 </div>
               </div>
             </nav>
 
             {/* Hero Section */}
-            <section className="relative pt-32 pb-20 px-6 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
+            <section className="relative pt-28 md:pt-40 pb-16 md:pb-20 px-4 md:px-6 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
 
               {/* Central Visualization Area - Moved Up */}
-              <div className="w-full max-w-4xl h-[350px] relative mb-4">
+              <div className="w-full max-w-4xl h-[200px] xs:h-[250px] md:h-[350px] relative mb-4 md:mb-6">
                 <div className="absolute inset-0 z-20 flex items-center justify-center">
                   <Model3D modelUrl="/models/model.obj" />
                 </div>
@@ -432,9 +427,9 @@ function App() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="mb-8 inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/10 text-indigo-400 text-sm font-medium"
+                className="mb-6 md:mb-8 inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full glass border border-white/10 text-indigo-400 text-xs md:text-sm font-medium"
               >
-                <Sparkles className="w-4 h-4 animate-pulse" />
+                <Sparkles className="w-3.5 h-3.5 md:w-4 h-4 animate-pulse" />
                 <span>Next-Gen Document Intelligence</span>
               </motion.div>
 
@@ -442,16 +437,19 @@ function App() {
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-6xl md:text-8xl font-black mb-8 tracking-tighter leading-[1] bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400"
+                className="text-4xl xs:text-5xl md:text-7xl lg:text-8xl font-black mb-6 md:mb-8 tracking-tighter leading-[1.1] md:leading-[1.05] px-4 md:px-0"
               >
-                Stop Reading. <br /> Start <span className="text-indigo-500 italic">Knowing.</span>
+                <span className="block bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Stop Reading.</span>
+                <span className="block">
+                  Start <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_auto] animate-gradient-x italic">Knowing.</span>
+                </span>
               </motion.h1>
 
               <motion.p
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="text-lg md:text-xl text-slate-400 max-w-2xl mb-12 leading-relaxed"
+                className="text-base md:text-xl text-slate-400 max-w-2xl mb-10 md:mb-12 leading-relaxed px-4 md:px-0"
               >
                 The world's fastest document summarization engine.
                 Turn complex reports into executive insights in milleseconds.
@@ -461,18 +459,18 @@ function App() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="flex flex-col sm:flex-row gap-5"
+                className="flex flex-col sm:flex-row gap-4 md:gap-5"
               >
                 <button
                   onClick={scrollToTool}
-                  className="h-16 px-10 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black transition-all shadow-2xl shadow-indigo-600/30 flex items-center gap-3 active:scale-95"
+                  className="h-14 md:h-16 px-8 md:px-10 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black transition-all shadow-2xl shadow-indigo-600/30 flex items-center justify-center gap-3 active:scale-95 text-lg md:text-xl"
                 >
-                  <span className="text-xl">Upload Document</span>
-                  <ArrowRight className="w-6 h-6" />
+                  <span>Upload Document</span>
+                  <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
                 <button
                   onClick={handleViewDemo}
-                  className="h-16 px-10 rounded-2xl glass hover:bg-white/10 text-white font-bold transition-all flex items-center gap-3 active:scale-95"
+                  className="h-14 md:h-16 px-8 md:px-10 rounded-2xl glass hover:bg-white/10 text-white font-bold transition-all flex items-center justify-center gap-3 active:scale-95 text-base md:text-lg"
                 >
                   <Terminal className="w-5 h-5 text-indigo-400" />
                   <span>View Demo</span>
@@ -481,28 +479,28 @@ function App() {
             </section>
 
             {/* Features Section */}
-            <section id="features" className="py-32 px-6 max-w-7xl mx-auto">
-              <div className="text-center mb-20">
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 italic tracking-tight">Powerful Core Features</h2>
-                <p className="text-slate-500 max-w-xl mx-auto">Engineered for quality, speed, and uncompromising privacy.</p>
+            <section id="features" className="py-20 md:py-32 px-4 md:px-6 max-w-7xl mx-auto">
+              <div className="text-center mb-16 md:mb-20">
+                <h2 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 italic tracking-tight">Powerful Core Features</h2>
+                <p className="text-slate-500 max-w-xl mx-auto text-sm md:text-base px-4">Engineered for quality, speed, and uncompromising privacy.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 {[
                   {
-                    icon: <BrainCircuit className="w-8 h-8" />,
+                    icon: <BrainCircuit className="w-6 h-6 md:w-8 md:h-8" />,
                     title: "Nueron-Link AI",
                     desc: "Uses contextual understanding to maintain document tone and intent.",
                     color: "text-indigo-400"
                   },
                   {
-                    icon: <Zap className="w-8 h-8" />,
+                    icon: <Zap className="w-6 h-6 md:w-8 md:h-8" />,
                     title: "Instant Processing",
                     desc: "Parallelized cloud execution allows for 100+ page summaries in under 5 seconds.",
                     color: "text-yellow-400"
                   },
                   {
-                    icon: <ShieldCheck className="w-8 h-8" />,
+                    icon: <ShieldCheck className="w-6 h-6 md:w-8 md:h-8" />,
                     title: "Privacy First",
                     desc: "Your data is processed in a stateless environment. Nothing stays on our servers.",
                     color: "text-emerald-400"
@@ -513,52 +511,52 @@ function App() {
                     whileInView={{ y: [40, 0], opacity: [0, 1] }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="group glass p-10 rounded-[40px] border-white/5 hover:border-indigo-500/30 transition-all hover:-translate-y-2"
+                    className="group glass p-8 md:p-10 rounded-3xl md:rounded-[40px] border-white/5 hover:border-indigo-500/30 transition-all hover:-translate-y-2"
                   >
-                    <div className={`mb-6 w-16 h-16 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 ${feat.color} group-hover:scale-110 transition-transform`}>
+                    <div className={`mb-6 w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 ${feat.color} group-hover:scale-110 transition-transform`}>
                       {feat.icon}
                     </div>
-                    <h3 className="text-2xl font-bold mb-4 text-white tracking-tight leading-none">{feat.title}</h3>
-                    <p className="text-slate-400 leading-relaxed text-lg">{feat.desc}</p>
+                    <h3 className="text-xl md:text-2xl font-bold mb-4 text-white tracking-tight leading-none">{feat.title}</h3>
+                    <p className="text-slate-400 leading-relaxed text-base md:text-lg">{feat.desc}</p>
                   </motion.div>
                 ))}
               </div>
             </section>
 
             {/* Process Section */}
-            <section id="process" className="py-32 bg-slate-900/40 relative overflow-hidden">
+            <section id="process" className="py-20 md:py-32 bg-slate-900/40 relative overflow-hidden">
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#6366f1 0.5px, transparent 0.5px)", backgroundSize: "32px 32px" }}></div>
 
-              <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="flex flex-col md:flex-row items-center gap-20">
-                  <div className="flex-1 space-y-8">
-                    <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight italic">How We Distill <br /> Information</h2>
+              <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+                <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
+                  <div className="flex-1 space-y-6 md:space-y-8">
+                    <h2 className="text-3xl md:text-5xl font-black mb-6 md:mb-8 leading-tight italic">How We Distill <br className="hidden md:block" /> Information</h2>
 
-                    <div className="space-y-12">
+                    <div className="space-y-8 md:space-y-12">
                       {[
                         { step: "01", title: "Upload & Ingest", desc: "Select your files. We support PDF, DOCX, and TXT seamlessly." },
                         { step: "02", title: "AI Analysis", desc: "Our engine maps the structure, tone, and key arguments of the text." },
                         { step: "03", title: "Insight Generation", desc: "The core summary and key insights are generated in real-time." }
                       ].map((item, i) => (
-                        <div key={i} className="flex gap-6 items-start">
-                          <div className="text-3xl font-black text-indigo-500/30 font-mono pt-1">{item.step}</div>
+                        <div key={i} className="flex gap-4 md:gap-6 items-start">
+                          <div className="text-2xl md:text-3xl font-black text-indigo-500/30 font-mono pt-1">{item.step}</div>
                           <div>
-                            <h4 className="text-2xl font-bold text-white mb-2">{item.title}</h4>
-                            <p className="text-slate-400 text-lg leading-relaxed">{item.desc}</p>
+                            <h4 className="text-xl md:text-2xl font-bold text-white mb-2">{item.title}</h4>
+                            <p className="text-slate-400 text-base md:text-lg leading-relaxed">{item.desc}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="flex-1 w-full max-w-lg aspect-square relative">
-                    <div className="absolute inset-0 bg-indigo-600/20 blur-[100px]"></div>
-                    <div className="relative h-full glass rounded-[60px] border border-white/10 flex items-center justify-center group overflow-hidden">
+                  <div className="flex-1 w-full max-w-sm md:max-w-lg aspect-square relative">
+                    <div className="absolute inset-0 bg-indigo-600/20 blur-[60px] md:blur-[100px]"></div>
+                    <div className="relative h-full glass rounded-[40px] md:rounded-[60px] border border-white/10 flex items-center justify-center group overflow-hidden">
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 opacity-10 border-[1px] border-dashed border-indigo-400 rounded-full m-10"
+                        className="absolute inset-0 opacity-10 border-[1px] border-dashed border-indigo-400 rounded-full m-8 md:m-10"
                       ></motion.div>
-                      <Cpu className="w-32 h-32 text-indigo-600 group-hover:scale-125 transition-transform duration-500" />
+                      <Cpu className="w-20 h-20 md:w-32 md:h-32 text-indigo-600 group-hover:scale-125 transition-transform duration-500" />
                     </div>
                   </div>
                 </div>
@@ -566,20 +564,20 @@ function App() {
             </section>
 
             {/* Security Section */}
-            <section id="security" className="py-32 px-6">
-              <div className="max-w-4xl mx-auto glass p-12 md:p-20 rounded-[50px] border-indigo-500/20 relative overflow-hidden text-center">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl"></div>
-                <Lock className="w-16 h-16 text-indigo-400 mx-auto mb-8" />
-                <h2 className="text-4xl font-bold mb-6 text-white italic">Bank-Grade Security</h2>
-                <p className="text-xl text-slate-400 mb-10 leading-relaxed max-w-2xl mx-auto">
+            <section id="security" className="py-20 md:py-32 px-4 md:px-6">
+              <div className="max-w-4xl mx-auto glass p-10 md:p-20 rounded-[40px] md:rounded-[50px] border-indigo-500/20 relative overflow-hidden text-center">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl text-center"></div>
+                <Lock className="w-12 h-12 md:w-16 md:h-16 text-indigo-400 mx-auto mb-6 md:mb-8" />
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-white italic">Bank-Grade Security</h2>
+                <p className="text-lg md:text-xl text-slate-400 mb-8 md:mb-10 leading-relaxed max-w-2xl mx-auto">
                   Your documents are end-to-end encrypted. We leverage SOC2 compliant processing
                   environments to ensure your intellectual property remains private.
                 </p>
-                <div className="flex flex-wrap items-center justify-center gap-6 opacity-60">
-                  <span className="flex items-center gap-2 font-bold text-xs tracking-widest uppercase text-slate-500">
+                <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 opacity-60">
+                  <span className="flex items-center gap-2 font-bold text-[10px] md:text-xs tracking-widest uppercase text-slate-500">
                     <Check className="w-4 h-4 text-emerald-500" /> AES-256 Encryption
                   </span>
-                  <span className="flex items-center gap-2 font-bold text-xs tracking-widest uppercase text-slate-500">
+                  <span className="flex items-center gap-2 font-bold text-[10px] md:text-xs tracking-widest uppercase text-slate-500">
                     <Check className="w-4 h-4 text-emerald-500" /> TLS 1.3 Transmission
                   </span>
                 </div>
@@ -587,13 +585,13 @@ function App() {
             </section>
 
             {/* Footer */}
-            <footer className="py-20 border-t border-white/5 px-6">
-              <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10 opacity-40 hover:opacity-100 transition-opacity">
+            <footer className="py-12 md:py-20 border-t border-white/5 px-4 md:px-6">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 opacity-40 hover:opacity-100 transition-opacity">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-indigo-400" />
                   <span className="font-bold tracking-tight text-white">Axon © 2026</span>
                 </div>
-                <div className="flex gap-10 text-sm font-medium">
+                <div className="flex flex-wrap justify-center gap-6 md:gap-10 text-xs md:text-sm font-medium">
                   <button onClick={() => alert('API Docs coming soon!')} className="hover:text-white transition-colors">API Docs</button>
                   <button onClick={() => alert('Privacy Policy coming soon!')} className="hover:text-white transition-colors">Privacy Policy</button>
                   <button onClick={() => alert('Terms of Service coming soon!')} className="hover:text-white transition-colors">Terms of Service</button>
@@ -608,37 +606,37 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", damping: 25, stiffness: 100 }}
-            className="relative z-10 max-w-4xl mx-auto pt-40 pb-20 px-6 min-h-screen"
+            className="relative z-10 max-w-4xl mx-auto pt-32 md:pt-40 pb-16 md:pb-20 px-4 md:px-6 min-h-screen"
             ref={uploadSectionRef}
           >
             {/* Tool Nav Overlay */}
-            <div className="fixed top-0 left-0 w-full h-20 px-6 z-40 pointer-events-none">
-              <div className="max-w-7xl mx-auto h-full flex items-center justify-between pointer-events-auto">
+            <div className="fixed top-0 left-0 w-full h-20 px-4 md:px-6 z-40 pointer-events-none">
+              <div className="max-w-7xl mx-auto h-full flex items-center justify-between pointer-events-auto border-b border-white/5 glass backdrop-blur-xl">
                 <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setView('landing')}>
-                  <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-indigo-500" />
+                  <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-indigo-500" />
                   </div>
-                  <span className="text-xl font-bold tracking-tight text-white hidden sm:block">Axon</span>
+                  <span className="text-lg md:text-xl font-bold tracking-tight text-white font-black italic">Axon</span>
                 </div>
                 <button
                   onClick={() => setView('landing')}
-                  className="h-10 px-5 rounded-xl border border-white/5 glass hover:bg-white/10 text-slate-400 text-sm font-bold transition-all flex items-center gap-2 active:scale-95"
+                  className="h-9 md:h-10 px-4 md:px-5 rounded-xl border border-white/5 glass hover:bg-white/10 text-slate-400 text-xs md:text-sm font-bold transition-all flex items-center gap-2 active:scale-95"
                 >
                   <span>Back to Home</span>
                 </button>
               </div>
             </div>
 
-            <div className="parallax-inner space-y-12">
+            <div className="parallax-inner space-y-8 md:space-y-12">
               <div className="text-center md:text-left">
-                <h2 className="text-5xl font-black text-white mb-4 tracking-tighter italic">AI Analysis Hub</h2>
-                <p className="text-slate-500 text-lg">Upload document to extract executive summaries and core insights.</p>
+                <h2 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tighter italic">AI Analysis Hub</h2>
+                <p className="text-slate-500 text-base md:text-lg">Upload document to extract executive summaries and core insights.</p>
               </div>
 
-              <div className="grid grid-cols-1 gap-10 group/space">
+              <div className="grid grid-cols-1 gap-8 md:gap-10 group/space">
                 {/* Upload Card */}
                 <motion.div
-                  className={`glass p-8 rounded-[48px] border-white/5 shadow-3xl transition-all duration-700 relative overflow-hidden ${!file ? 'md:p-12' : 'md:p-8'}`}
+                  className={`glass p-6 md:p-8 rounded-[32px] md:rounded-[48px] border-white/5 shadow-3xl transition-all duration-700 relative overflow-hidden ${!file ? 'md:p-12' : 'md:p-8'}`}
                   layout
                 >
                   <AnimatePresence mode="wait">
@@ -648,20 +646,20 @@ function App() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="space-y-8"
+                        className="space-y-6 md:space-y-8"
                       >
                         <label
                           htmlFor="dropzone-file"
-                          className={`relative flex flex-col items-center justify-center w-full min-h-[320px] border-2 border-dashed rounded-[32px] cursor-pointer transition-all ${file ? 'border-indigo-500 bg-indigo-500/5 shadow-2xl shadow-indigo-500/10' : 'border-slate-800 bg-slate-900/30 hover:bg-slate-900/50 hover:border-slate-700'
+                          className={`relative flex flex-col items-center justify-center w-full min-h-[280px] md:min-h-[320px] border-2 border-dashed rounded-[24px] md:rounded-[32px] cursor-pointer transition-all ${file ? 'border-indigo-500 bg-indigo-500/5 shadow-2xl shadow-indigo-500/10' : 'border-slate-800 bg-slate-900/30 hover:bg-slate-900/50 hover:border-slate-700'
                             }`}
                         >
                           {loading && (
-                            <div className="absolute inset-0 bg-indigo-600/5 rounded-[32px] overflow-hidden">
+                            <div className="absolute inset-0 bg-indigo-600/5 rounded-[24px] md:rounded-[32px] overflow-hidden">
                               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/30 to-transparent animate-scan" style={{ height: '50%' }}></div>
                             </div>
                           )}
 
-                          <div className="flex flex-col items-center justify-center p-8 text-center">
+                          <div className="flex flex-col items-center justify-center p-6 md:p-8 text-center">
                             <motion.div
                               animate={loading ? {
                                 scale: [1, 1.15, 1],
@@ -669,23 +667,23 @@ function App() {
                                 rotate: [0, 5, -5, 0]
                               } : {}}
                               transition={{ duration: 1.5, repeat: Infinity }}
-                              className={`w-24 h-24 mb-6 rounded-3xl flex items-center justify-center border-2 transition-all shadow-2xl ${file ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-600/30' : 'bg-slate-900 text-slate-600 border-white/5'
+                              className={`w-16 h-16 md:w-24 md:h-24 mb-4 md:mb-6 rounded-2xl md:rounded-3xl flex items-center justify-center border-2 transition-all shadow-2xl ${file ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-600/30' : 'bg-slate-900 text-slate-600 border-white/5'
                                 }`}
                             >
-                              {loading ? <Cpu className="w-12 h-12" /> : file ? <CheckCircle className="w-12 h-12" /> : <FileUp className="w-12 h-12" />}
+                              {loading ? <Cpu className="w-8 h-8 md:w-12 md:h-12" /> : file ? <CheckCircle className="w-8 h-8 md:w-12 md:h-12" /> : <FileUp className="w-8 h-8 md:w-12 md:h-12" />}
                             </motion.div>
 
                             {file ? (
                               <div className="space-y-2">
-                                <p className="text-2xl font-black text-white italic">{file.name}</p>
-                                <p className="text-sm font-bold text-indigo-400 uppercase tracking-widest">{(file.size / 1024 / 1024).toFixed(2)} MB • Ready for AI</p>
+                                <p className="text-xl md:text-2xl font-black text-white italic truncate max-w-[200px] md:max-w-md">{file.name}</p>
+                                <p className="text-[10px] md:text-sm font-bold text-indigo-400 uppercase tracking-widest">{(file.size / 1024 / 1024).toFixed(2)} MB • Ready for AI</p>
                               </div>
                             ) : (
                               <>
-                                <p className="text-2xl mb-3 text-white font-bold tracking-tight italic">
+                                <p className="text-xl md:text-2xl mb-2 md:mb-3 text-white font-bold tracking-tight italic">
                                   Drop your intelligence here
                                 </p>
-                                <p className="text-slate-500 font-medium">PDF, TXT, CSV, XLSX files accepted</p>
+                                <p className="text-slate-500 text-xs md:text-sm font-medium">PDF, TXT, CSV, XLSX files accepted</p>
                               </>
                             )}
                           </div>
@@ -704,7 +702,7 @@ function App() {
                           whileTap={{ scale: 0.98 }}
                           onClick={handleUpload}
                           disabled={!file || loading}
-                          className={`group w-full h-20 rounded-[24px] font-black text-xl transition-all flex items-center justify-center gap-4 overflow-hidden relative ${!file || loading
+                          className={`group w-full h-16 md:h-20 rounded-[20px] md:rounded-[24px] font-black text-lg md:text-xl transition-all flex items-center justify-center gap-3 md:gap-4 overflow-hidden relative ${!file || loading
                             ? 'bg-slate-900 border border-white/5 text-slate-700 cursor-not-allowed'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xl shadow-indigo-600/30'
                             }`}
@@ -712,13 +710,13 @@ function App() {
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                           {loading ? (
                             <>
-                              <BrainCircuit className="w-8 h-8 animate-spin" />
-                              <span className="italic">Engaging Nueron Model...</span>
+                              <BrainCircuit className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
+                              <span className="italic text-base md:text-lg">Engaging Neuron Model...</span>
                             </>
                           ) : (
                             <>
-                              <Sparkles className="w-7 h-7" />
-                              <span className="italic uppercase tracking-wider">Execute Summary</span>
+                              <Sparkles className="w-6 h-6 md:w-7 md:h-7" />
+                              <span className="italic uppercase tracking-wider text-base md:text-lg">Execute Summary</span>
                             </>
                           )}
                         </motion.button>
@@ -730,18 +728,18 @@ function App() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="flex flex-col sm:flex-row items-center justify-between gap-6"
                       >
-                        <div className="flex items-center gap-6">
-                          <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-3xl flex items-center justify-center shadow-inner border border-emerald-500/30">
-                            <CheckCircle className="w-8 h-8" />
+                        <div className="flex items-center gap-4 md:gap-6">
+                          <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-500/20 text-emerald-400 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-inner border border-emerald-500/30">
+                            <CheckCircle className="w-6 h-6 md:w-8 md:h-8" />
                           </div>
                           <div className="text-left">
-                            <p className="text-3xl font-black text-white italic leading-none mb-2">Analysis Complete</p>
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest truncate max-w-[200px]">{file.name}</p>
+                            <p className="text-xl md:text-3xl font-black text-white italic leading-none mb-1 md:mb-2">Analysis Complete</p>
+                            <p className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest truncate max-w-[150px] md:max-w-[200px]">{file.name}</p>
                           </div>
                         </div>
                         <button
                           onClick={() => { setFile(null); setResult(null); setError(null); }}
-                          className="h-14 px-8 rounded-2xl bg-white/5 border border-white/10 text-white font-black hover:bg-white/10 text-sm italic transition-all active:scale-95"
+                          className="w-full sm:w-auto h-12 md:h-14 px-6 md:px-8 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-white font-black hover:bg-white/10 text-xs md:text-sm italic transition-all active:scale-95"
                         >
                           New Upload
                         </button>
@@ -757,12 +755,12 @@ function App() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="bg-red-500/10 border border-red-500/20 p-6 rounded-[32px] flex items-start gap-6 text-red-500"
+                      className="bg-red-500/10 border border-red-500/20 p-5 md:p-6 rounded-[24px] md:rounded-[32px] flex items-start gap-4 md:gap-6 text-red-500"
                     >
-                      <AlertCircle className="w-8 h-8 shrink-0 mt-0.5" />
+                      <AlertCircle className="w-6 h-6 md:w-8 md:h-8 shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xl font-black mb-1 italic uppercase tracking-tighter">System Error 09x</p>
-                        <p className="text-lg leading-relaxed font-medium opacity-80">{error}</p>
+                        <p className="text-lg md:text-xl font-black mb-1 italic uppercase tracking-tighter">System Error 09x</p>
+                        <p className="text-sm md:text-lg leading-relaxed font-medium opacity-80">{error}</p>
                       </div>
                     </motion.div>
                   )}
@@ -774,36 +772,36 @@ function App() {
                     <motion.div
                       initial={{ opacity: 0, y: 40 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="grid grid-cols-1 gap-10"
+                      className="grid grid-cols-1 gap-8 md:gap-10"
                     >
-                      <div className="glass p-10 md:p-14 rounded-[48px] border-white/5 relative shadow-3xl">
-                        <div className="flex items-center gap-4 mb-10 overflow-hidden">
+                      <div className="glass p-8 md:p-14 rounded-[32px] md:rounded-[48px] border-white/5 relative shadow-3xl">
+                        <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-10 overflow-hidden">
                           <div className="w-1 h-3 bg-indigo-500"></div>
-                          <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">Executive Summary</h3>
+                          <h3 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">Executive Summary</h3>
                         </div>
-                        <p className="text-2xl text-slate-200 leading-[1.6] font-medium opacity-90 relative z-10 whitespace-pre-wrap">
+                        <p className="text-lg md:text-2xl text-slate-200 leading-relaxed md:leading-[1.6] font-medium opacity-90 relative z-10 whitespace-pre-wrap">
                           {result.summary}
                         </p>
-                        <div className="absolute bottom-10 right-10 opacity-5 pointer-events-none">
-                          <FileText className="w-40 h-40" />
+                        <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 opacity-5 pointer-events-none">
+                          <FileText className="w-24 h-24 md:w-40 md:h-40" />
                         </div>
                       </div>
 
                       {result.key_points && result.key_points.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                           {result.key_points.map((point, i) => (
                             <motion.div
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.15 }}
                               key={i}
-                              className="group/item glass p-8 rounded-[40px] border-white/5 hover:border-indigo-500/40 transition-all flex flex-col justify-between h-full bg-indigo-500/5"
+                              className="group/item glass p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-white/5 hover:border-indigo-500/40 transition-all flex flex-col justify-between h-full bg-indigo-500/5"
                             >
                               <div>
-                                <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center text-indigo-400 font-black text-xl mb-6 group-hover/item:scale-110 transition-transform">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center text-indigo-400 font-black text-lg md:text-xl mb-4 md:mb-6 group-hover/item:scale-110 transition-transform">
                                   {i + 1}
                                 </div>
-                                <p className="text-xl text-slate-300 leading-snug font-medium italic">{point}</p>
+                                <p className="text-lg md:text-xl text-slate-300 leading-snug font-medium italic">{point}</p>
                               </div>
                             </motion.div>
                           ))}
@@ -825,100 +823,100 @@ function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-950/60"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 backdrop-blur-xl bg-slate-950/60"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-5xl glass rounded-[48px] overflow-hidden border-white/20 shadow-2xl flex flex-col md:flex-row h-[80vh]"
+              className="relative w-full max-w-5xl glass rounded-[32px] md:rounded-[48px] overflow-hidden border-white/20 shadow-2xl flex flex-col md:flex-row h-[85vh] md:h-[80vh]"
             >
               <button
                 onClick={() => setShowDemo(false)}
-                className="absolute top-8 right-8 w-12 h-12 rounded-full glass hover:bg-white/10 flex items-center justify-center text-white z-10 transition-colors"
+                className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 md:w-12 md:h-12 border-white/5 rounded-full glass hover:bg-white/10 flex items-center justify-center text-white z-20 transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </button>
 
               {/* Sidebar Info */}
-              <div className="md:w-1/3 bg-indigo-600/10 p-10 flex flex-col justify-between border-r border-white/5">
+              <div className="w-full md:w-1/3 bg-indigo-600/10 p-8 md:p-10 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5">
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center mb-6 shadow-xl shadow-indigo-600/40">
-                    <Sparkles className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-indigo-600 flex items-center justify-center mb-4 md:mb-6 shadow-xl shadow-indigo-600/40">
+                    <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
-                  <h3 className="text-3xl font-black text-white italic mb-4 leading-tight">Product <br /> Preview</h3>
-                  <p className="text-slate-400 text-lg leading-relaxed mb-8">
+                  <h3 className="text-2xl md:text-3xl font-black text-white italic mb-2 md:mb-4 leading-tight">Product <br className="hidden md:block" /> Preview</h3>
+                  <p className="text-slate-400 text-sm md:text-lg leading-relaxed mb-4 md:mb-8">
                     Explore how Axon handles complex financial documents instantly.
                   </p>
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-emerald-400 font-bold text-sm">
-                    <CheckCircle className="w-5 h-5" />
+                <div className="hidden sm:flex flex-col gap-3 md:gap-4">
+                  <div className="flex items-center gap-3 text-emerald-400 font-bold text-xs md:text-sm">
+                    <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
                     <span>Neural Engine v2 Enabled</span>
                   </div>
-                  <div className="flex items-center gap-3 text-indigo-400 font-bold text-sm">
-                    <Zap className="w-5 h-5" />
+                  <div className="flex items-center gap-3 text-indigo-400 font-bold text-xs md:text-sm">
+                    <Zap className="w-4 h-4 md:w-5 md:h-5" />
                     <span>Instant Latency</span>
                   </div>
                 </div>
               </div>
 
               {/* Demo Content Area (Scrollable) */}
-              <div className="flex-1 p-10 overflow-y-auto custom-scrollbar">
-                <div className="space-y-12">
-                  <div className="space-y-4">
-                    <p className="text-xs font-black uppercase tracking-widest text-indigo-500">Source Document</p>
-                    <div className="p-6 rounded-3xl bg-slate-900 border border-white/5 relative group">
-                      <div className="absolute top-4 right-4 text-slate-700 font-mono text-[10px]">PDF_PREVIEW_42</div>
-                      <p className="text-slate-300 font-serif leading-relaxed line-clamp-4">
+              <div className="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar">
+                <div className="space-y-8 md:space-y-12">
+                  <div className="space-y-3 md:space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Source Document</p>
+                    <div className="p-4 md:p-6 rounded-2xl md:rounded-3xl bg-slate-900 border border-white/5 relative group">
+                      <div className="absolute top-2 right-4 text-slate-700 font-mono text-[8px] md:text-[10px]">PDF_PREVIEW_42</div>
+                      <p className="text-slate-300 font-serif text-sm md:text-base leading-relaxed line-clamp-4 md:line-clamp-none">
                         The fiscal roadmap for Q4 2024 and 2025 demonstrates a significant pivot towards sustainability-linked debt instruments. With an initial capital injection of $500M, the consortium aims to reduce operational carbon footprints by 22% while maintaining a dividend yield of 4.5%...
                       </p>
                     </div>
                   </div>
 
-                  <div className="space-y-6">
-                    <p className="text-xs font-black uppercase tracking-widest text-indigo-500">AI Logic Flow</p>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center gap-4 text-white">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black">1</div>
-                        <p className="font-bold italic">Contextual Map Extraction</p>
+                  <div className="space-y-4 md:space-y-6">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500">AI Logic Flow</p>
+                    <div className="flex flex-col gap-3 md:gap-4">
+                      <div className="flex items-center gap-3 md:gap-4 text-white">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black text-sm md:text-base">1</div>
+                        <p className="font-bold italic text-sm md:text-base">Contextual Map Extraction</p>
                       </div>
-                      <div className="h-12 w-0.5 bg-indigo-500/20 ml-5"></div>
-                      <div className="flex items-center gap-4 text-white">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black">2</div>
-                        <p className="font-bold italic">Nuance weighting & deduplication</p>
+                      <div className="h-8 md:h-12 w-0.5 bg-indigo-500/20 ml-4 md:ml-5"></div>
+                      <div className="flex items-center gap-3 md:gap-4 text-white">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black text-sm md:text-base">2</div>
+                        <p className="font-bold italic text-sm md:text-base">Nuance weighting & deduplication</p>
                       </div>
-                      <div className="h-12 w-0.5 bg-indigo-500/20 ml-5"></div>
-                      <div className="flex items-center gap-4 text-white">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black">3</div>
-                        <p className="font-bold italic">Executive Summary Generation</p>
+                      <div className="h-8 md:h-12 w-0.5 bg-indigo-500/20 ml-4 md:ml-5"></div>
+                      <div className="flex items-center gap-3 md:gap-4 text-white">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-black text-sm md:text-base">3</div>
+                        <p className="font-bold italic text-sm md:text-base">Executive Summary Generation</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-8 border-t border-white/10">
-                    <h4 className="text-2xl font-black text-white italic mb-6">Generated Insight</h4>
-                    <div className="bg-white/5 rounded-[32px] p-8 border border-white/5 mb-8 min-h-[120px]">
-                      <p className="text-xl text-slate-200 leading-relaxed font-medium italic border-l-4 border-indigo-500 pl-6 py-2">
-                        {demoText || <span className="opacity-20">Analysing logic patterns...</span>}
+                  <div className="pt-6 md:pt-8 border-t border-white/10">
+                    <h4 className="text-xl md:text-2xl font-black text-white italic mb-4 md:mb-6">Generated Insight</h4>
+                    <div className="bg-white/5 rounded-2xl md:rounded-[32px] p-6 md:p-8 border border-white/5 mb-6 md:mb-8 min-h-[100px] md:min-h-[120px]">
+                      <p className="text-lg md:text-xl text-slate-200 leading-relaxed font-medium italic border-l-4 border-indigo-500 pl-4 md:pl-6 py-1 md:py-2">
+                        {demoText || <span className="opacity-20 text-sm md:text-base">Analysing logic patterns...</span>}
                         <motion.span
                           animate={{ opacity: [0, 1, 0] }}
                           transition={{ duration: 0.8, repeat: Infinity }}
-                          className="inline-block w-1.5 h-6 bg-indigo-500 ml-1 translate-y-1"
+                          className="inline-block w-1 md:w-1.5 h-5 md:h-6 bg-indigo-500 ml-1 translate-y-1"
                         />
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                       {[
                         "Projected 15% revenue increase driven by global expansion.",
                         "Operational cost reduction of $4.2M through automation.",
                         "Strategic shift to AI-first customer experience model.",
                         "Capital expenditure allocated for R&D in sustainable tech."
                       ].map((point, i) => (
-                        <div key={i} className="p-5 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex gap-4 items-start">
-                          <span className="w-6 h-6 shrink-0 rounded-lg bg-indigo-600 flex items-center justify-center text-[10px] font-black">{i + 1}</span>
-                          <p className="text-slate-400 text-sm font-medium">{point}</p>
+                        <div key={i} className="p-4 md:p-5 rounded-xl md:rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex gap-3 md:gap-4 items-start">
+                          <span className="w-5 h-5 md:w-6 md:h-6 shrink-0 rounded-lg bg-indigo-600 flex items-center justify-center text-[8px] md:text-[10px] font-black">{i + 1}</span>
+                          <p className="text-slate-400 text-xs md:text-sm font-medium">{point}</p>
                         </div>
                       ))}
                     </div>
@@ -936,44 +934,44 @@ function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] flex items-center justify-center p-6 backdrop-blur-2xl bg-slate-950/80"
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 backdrop-blur-2xl bg-slate-950/80"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-md glass rounded-[40px] overflow-hidden border-white/10 shadow-3xl p-10"
+              className="relative w-full max-w-md glass rounded-3xl md:rounded-[40px] overflow-hidden border-white/10 shadow-3xl p-8 md:p-10 max-h-[95vh] overflow-y-auto custom-scrollbar"
             >
               <button
                 onClick={() => { setShowAuth(false); setAuthError(null); }}
-                className="absolute top-8 right-8 w-10 h-10 rounded-full glass hover:bg-white/10 flex items-center justify-center text-slate-400 z-10 transition-colors"
+                className="absolute top-6 right-6 md:top-8 md:right-8 w-8 h-8 md:w-10 md:h-10 border-white/5 rounded-full glass hover:bg-white/10 flex items-center justify-center text-slate-400 z-10 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 md:w-5 md:h-5" />
               </button>
 
-              <div className="text-center mb-10">
-                <div className="w-16 h-16 rounded-[20px] bg-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-600/40">
-                  <User className="w-8 h-8 text-white" />
+              <div className="text-center mb-8 md:mb-10">
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[20px] bg-indigo-600 flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-2xl shadow-indigo-600/40">
+                  <User className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-black text-white italic tracking-tight mb-2">
+                <h3 className="text-2xl md:text-3xl font-black text-white italic tracking-tight mb-2">
                   {isLogin ? 'Welcome Back' : 'Create Account'}
                 </h3>
-                <p className="text-slate-400 font-medium">
+                <p className="text-slate-400 text-sm font-medium">
                   {isLogin ? 'Login to access your summaries' : 'Register to save your analysis history'}
                 </p>
               </div>
 
-              <form onSubmit={handleAuth} className="space-y-4">
+              <form onSubmit={handleAuth} className="space-y-3 md:space-y-4">
                 {!isLogin && (
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
+                  <div className="space-y-1.5 md:space-y-2">
+                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <input
                         type="text"
                         required
                         placeholder="Karan Thakar"
-                        className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
+                        className="w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
                       />
@@ -981,30 +979,30 @@ function App() {
                   </div>
                 )}
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
+                <div className="space-y-1.5 md:space-y-2">
+                  <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
                   <div className="relative">
                     <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
                       type="email"
                       required
                       placeholder="karan@example.com"
-                      className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
+                      className="w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
                       value={userEmail}
                       onChange={(e) => setUserEmail(e.target.value)}
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
+                <div className="space-y-1.5 md:space-y-2">
+                  <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
                       type="password"
                       required
                       placeholder="••••••••"
-                      className="w-full h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
+                      className="w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
                       value={userPassword}
                       onChange={(e) => setUserPassword(e.target.value)}
                     />
@@ -1015,7 +1013,7 @@ function App() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 text-red-500 text-xs font-bold bg-red-500/10 p-3 rounded-xl border border-red-500/20"
+                    className="flex items-center gap-2 text-red-500 text-[10px] md:text-xs font-bold bg-red-500/10 p-3 rounded-xl border border-red-500/20"
                   >
                     <AlertCircle className="w-3.5 h-3.5" />
                     <span>{authError}</span>
@@ -1025,12 +1023,12 @@ function App() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 rounded-xl bg-white text-slate-950 font-black text-md hover:bg-indigo-50 transition-all shadow-xl shadow-white/5 active:scale-95 disabled:opacity-50 mt-2"
+                  className="w-full h-12 md:h-14 rounded-xl bg-white text-slate-950 font-black text-sm md:text-md hover:bg-indigo-50 transition-all shadow-xl shadow-white/5 active:scale-95 disabled:opacity-50 mt-2 md:mt-4"
                 >
                   {loading ? 'Processing...' : isLogin ? 'Login to Axon' : 'Create Account'}
                 </button>
 
-                <p className="text-center text-sm text-slate-500 pt-2">
+                <p className="text-center text-xs md:text-sm text-slate-500 pt-2">
                   {isLogin ? "Don't have an account? " : "Already have an account? "}
                   <button
                     type="button"
@@ -1045,7 +1043,6 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* History Modal Overlay */}
       <AnimatePresence>
         {showHistory && (
@@ -1053,61 +1050,61 @@ function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] flex items-center justify-center p-6 backdrop-blur-2xl bg-slate-950/80"
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-6 backdrop-blur-2xl bg-slate-950/80"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-4xl glass rounded-[40px] overflow-hidden border-white/10 shadow-3xl p-10 flex flex-col max-h-[85vh]"
+              className="relative w-full max-w-4xl glass rounded-3xl md:rounded-[40px] overflow-hidden border-white/10 shadow-3xl p-6 md:p-10 flex flex-col max-h-[85vh]"
             >
               <button
                 onClick={() => setShowHistory(false)}
-                className="absolute top-8 right-8 w-10 h-10 rounded-full glass hover:bg-white/10 flex items-center justify-center text-slate-400 z-10 transition-colors"
+                className="absolute top-6 right-6 md:top-8 md:right-8 w-8 h-8 md:w-10 md:h-10 border-white/5 rounded-full glass hover:bg-white/10 flex items-center justify-center text-slate-400 z-10 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 md:w-5 md:h-5" />
               </button>
 
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-                  <History className="w-6 h-6" />
+              <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <History className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-white italic tracking-tight">Analysis History</h3>
-                  <p className="text-slate-500 text-sm font-medium">Manage your past executive summaries</p>
+                  <h3 className="text-xl md:text-2xl font-black text-white italic tracking-tight">Analysis History</h3>
+                  <p className="text-slate-500 text-[10px] md:text-sm font-medium">Manage your past executive summaries</p>
                 </div>
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 {loadingHistory ? (
                   <div className="h-40 flex items-center justify-center">
-                    <BrainCircuit className="w-10 h-10 text-indigo-500/50 animate-spin" />
+                    <BrainCircuit className="w-8 h-8 md:w-10 md:h-10 text-indigo-500/50 animate-spin" />
                   </div>
                 ) : summaries.length === 0 ? (
                   <div className="h-40 flex flex-col items-center justify-center text-slate-600 gap-4">
-                    <FileText className="w-12 h-12 opacity-20" />
-                    <p className="font-bold italic">No history found</p>
+                    <FileText className="w-10 h-10 md:w-12 md:h-12 opacity-20" />
+                    <p className="font-bold italic text-sm md:text-base">No history found</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-3 md:gap-4">
                     {summaries.map((s) => (
                       <motion.div
                         layout
                         key={s._id}
-                        className="group glass p-6 rounded-3xl border-white/5 hover:border-indigo-500/30 transition-all bg-white/[0.02]"
+                        className="group glass p-4 md:p-6 rounded-2xl md:rounded-3xl border-white/5 hover:border-indigo-500/30 transition-all bg-white/[0.02]"
                       >
-                        <div className="flex justify-between items-start gap-4">
+                        <div className="flex justify-between items-start gap-3 md:gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <span className="px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-[8px] md:text-[10px] font-black uppercase">
                                 {s.fileType || 'Doc'}
                               </span>
-                              <h4 className="font-black text-white italic">{s.fileName}</h4>
-                              <span className="text-slate-600 text-[10px] ml-2">
+                              <h4 className="font-black text-white italic text-sm md:text-base truncate max-w-[150px] md:max-w-xs">{s.fileName}</h4>
+                              <span className="text-slate-600 text-[8px] md:text-[10px] ml-1 md:ml-2">
                                 {new Date(s.createdAt).toLocaleDateString()}
                               </span>
                             </div>
-                            <p className="text-slate-400 text-sm italic line-clamp-2 mb-3">
+                            <p className="text-slate-400 text-xs md:text-sm italic line-clamp-2 mb-3">
                               {s.summary}
                             </p>
                             <button
@@ -1116,7 +1113,7 @@ function App() {
                                 setView('tool');
                                 setShowHistory(false);
                               }}
-                              className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group/btn"
+                              className="text-[10px] md:text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group/btn"
                             >
                               View Full Analysis
                               <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
@@ -1124,9 +1121,9 @@ function App() {
                           </div>
                           <button
                             onClick={() => deleteSummary(s._id)}
-                            className="p-2 rounded-xl glass text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                            className="p-1.5 md:p-2 rounded-lg md:rounded-xl glass text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all sm:opacity-0 sm:group-hover:opacity-100"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           </button>
                         </div>
                       </motion.div>
@@ -1138,7 +1135,7 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div >
+    </div>
   )
 }
 
