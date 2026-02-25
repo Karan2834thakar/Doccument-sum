@@ -40,10 +40,10 @@ export const authAPI = {
 
 // Summary API
 export const summaryAPI = {
-    save: (fileName, fileType, summary, keyPoints) =>
+    save: (fileName, fileType, summary, keyPoints, fullText) =>
         apiCall('/summaries', {
             method: 'POST',
-            body: JSON.stringify({ fileName, fileType, summary, keyPoints }),
+            body: JSON.stringify({ fileName, fileType, summary, keyPoints, fullText }),
         }),
 
     getAll: () => apiCall('/summaries'),
@@ -51,5 +51,13 @@ export const summaryAPI = {
     delete: (id) =>
         apiCall(`/summaries/${id}`, {
             method: 'DELETE',
+        }),
+
+    download: (id) => `${API_BASE_URL}/summaries/${id}/download?token=${localStorage.getItem('token')}`,
+
+    chat: (id, message) =>
+        apiCall(`/summaries/${id}/chat`, {
+            method: 'POST',
+            body: JSON.stringify({ message }),
         }),
 };

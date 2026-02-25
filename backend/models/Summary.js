@@ -22,6 +22,10 @@ const summarySchema = new mongoose.Schema({
         type: [String],
         default: []
     },
+    fullText: {
+        type: String,
+        default: ''
+    },
     createdAt: {
         type: Date,
         default: Date.now

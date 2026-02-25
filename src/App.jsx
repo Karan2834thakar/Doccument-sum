@@ -19,7 +19,10 @@ import {
   LogOut,
   Lock,
   History,
-  Trash2
+  Trash2,
+  Download,
+  MessageSquare,
+  Send
 } from 'lucide-react'
 import { authAPI, summaryAPI } from './api'
 import Model3D from './components/Model3D'
@@ -42,6 +45,10 @@ function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [summaries, setSummaries] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [chatMessage, setChatMessage] = useState('')
+  const [chatHistory, setChatHistory] = useState([])
+  const [isChatting, setIsChatting] = useState(false)
+  const [currentSummaryId, setCurrentSummaryId] = useState(null)
   const uploadSectionRef = useRef(null)
 
   useEffect(() => {
@@ -249,7 +256,8 @@ function App() {
         // Save to backend if logged in
         if (user) {
           try {
-            await summaryAPI.save(file.name, file.type || 'document', summaryData.summary, summaryData.key_points)
+            const saved = await summaryAPI.save(file.name, file.type || 'document', summaryData.summary, summaryData.key_points, text)
+            setCurrentSummaryId(saved.summary._id)
           } catch (saveErr) {
             console.error('Failed to save summary:', saveErr)
           }
@@ -264,7 +272,8 @@ function App() {
         // Save to backend if logged in
         if (user) {
           try {
-            await summaryAPI.save(file.name, file.type || 'document', fallbackSummary, [])
+            const saved = await summaryAPI.save(file.name, file.type || 'document', fallbackSummary, [], text)
+            setCurrentSummaryId(saved.summary._id)
           } catch (saveErr) {
             console.error('Failed to save summary:', saveErr)
           }
@@ -344,6 +353,30 @@ function App() {
 
   const handleViewDemo = () => {
     setShowDemo(true)
+  }
+
+  const handleDownload = () => {
+    if (!currentSummaryId) return;
+    window.open(summaryAPI.download(currentSummaryId), '_blank');
+  }
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!chatMessage.trim() || !currentSummaryId || isChatting) return;
+
+    const userMsg = { role: 'user', content: chatMessage };
+    setChatHistory(prev => [...prev, userMsg]);
+    setChatMessage('');
+    setIsChatting(true);
+
+    try {
+      const res = await summaryAPI.chat(currentSummaryId, chatMessage);
+      setChatHistory(prev => [...prev, { role: 'ai', content: res.reply }]);
+    } catch (err) {
+      setChatHistory(prev => [...prev, { role: 'error', content: 'Failed to get response.' }]);
+    } finally {
+      setIsChatting(false);
+    }
   }
 
   return (
@@ -795,6 +828,14 @@ function App() {
                         <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-10 overflow-hidden">
                           <div className="w-1 h-3 bg-indigo-500"></div>
                           <h3 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">Executive Summary</h3>
+                          <button
+                            onClick={handleDownload}
+                            className="ml-auto p-2 rounded-xl glass hover:bg-indigo-500/20 text-indigo-400 transition-all flex items-center gap-2"
+                            title="Download PDF"
+                          >
+                            <Download className="w-5 h-5" />
+                            <span className="hidden sm:inline text-xs font-black uppercase tracking-widest">Download</span>
+                          </button>
                         </div>
                         <p className="text-lg md:text-2xl text-slate-200 leading-relaxed md:leading-[1.6] font-medium opacity-90 relative z-10 whitespace-pre-wrap">
                           {result.summary}
@@ -802,6 +843,62 @@ function App() {
                         <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 opacity-5 pointer-events-none">
                           <FileText className="w-24 h-24 md:w-40 md:h-40" />
                         </div>
+                      </div>
+
+                      {/* Chat Interface */}
+                      <div className="glass p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-white/5 bg-slate-900/30">
+                        <div className="flex items-center gap-3 mb-6">
+                          <MessageSquare className="w-6 h-6 text-indigo-400" />
+                          <h3 className="text-lg md:text-xl font-black text-white italic tracking-tight">Chat with Document</h3>
+                        </div>
+
+                        <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                          {chatHistory.length === 0 ? (
+                            <p className="text-slate-500 text-sm font-medium text-center py-10 italic">
+                              Ask me anything about this document...
+                            </p>
+                          ) : (
+                            chatHistory.map((msg, i) => (
+                              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.role === 'user'
+                                    ? 'bg-indigo-600 text-white rounded-tr-none'
+                                    : msg.role === 'error'
+                                      ? 'bg-red-500/20 text-red-500 border border-red-500/20'
+                                      : 'bg-white/5 text-slate-300 border border-white/5 rounded-tl-none'
+                                  }`}>
+                                  {msg.content}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                          {isChatting && (
+                            <div className="flex justify-start">
+                              <div className="bg-white/5 p-3 rounded-2xl rounded-tl-none flex gap-1">
+                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
+                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <form onSubmit={handleSendMessage} className="relative">
+                          <input
+                            type="text"
+                            placeholder="What's the main goal of this report?"
+                            className="w-full h-14 pl-6 pr-14 bg-slate-900 border border-white/5 rounded-2xl text-white placeholder:text-slate-600 focus:border-indigo-500/50 outline-none transition-all"
+                            value={chatMessage}
+                            onChange={(e) => setChatMessage(e.target.value)}
+                            disabled={isChatting}
+                          />
+                          <button
+                            type="submit"
+                            disabled={!chatMessage.trim() || isChatting}
+                            className="absolute right-2 top-2 w-10 h-10 bg-indigo-600 hover:bg-indigo-500 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-50"
+                          >
+                            <Send className="w-5 h-5" />
+                          </button>
+                        </form>
                       </div>
 
                       {result.key_points && result.key_points.length > 0 && (
