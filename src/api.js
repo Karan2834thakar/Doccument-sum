@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://doccument-sum.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Helper function to make API calls
 const apiCall = async (endpoint, options = {}) => {
@@ -14,6 +14,15 @@ const apiCall = async (endpoint, options = {}) => {
     };
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+    // Check if response is actually JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response received:', text);
+        throw new Error(`Server returned HTML/Text instead of JSON. Check your backend server.`);
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -35,6 +44,18 @@ export const authAPI = {
         apiCall('/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password }),
+        }),
+
+    forgotPassword: (email) =>
+        apiCall('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        }),
+
+    resetPassword: (token, password) =>
+        apiCall(`/auth/reset-password/${token}`, {
+            method: 'POST',
+            body: JSON.stringify({ password }),
         }),
 };
 

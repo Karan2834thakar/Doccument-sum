@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line no-unused-vars
+import * as Yup from 'yup'
+import { useFormik } from 'formik'
 import {
   FileText,
   Upload,
@@ -40,7 +42,10 @@ function App() {
   const [userEmail, setUserEmail] = useState('')
   const [userPassword, setUserPassword] = useState('')
   const [isLogin, setIsLogin] = useState(true)
+  const [authView, setAuthView] = useState('login') // 'login', 'signup', 'forgot', 'reset'
+  const [resetToken, setResetToken] = useState(null)
   const [authError, setAuthError] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
   const [demoText, setDemoText] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [summaries, setSummaries] = useState([])
@@ -51,11 +56,82 @@ function App() {
   const [currentSummaryId, setCurrentSummaryId] = useState(null)
   const uploadSectionRef = useRef(null)
 
+  // Validation Schemas
+  const loginSchema = Yup.object({
+    email: Yup.string().email('Invalid email').required('Email is required'),
+    password: Yup.string().min(6, 'Password too short').required('Password required')
+  })
+
+  const registerSchema = Yup.object({
+    name: Yup.string().required('Name is required'),
+    email: Yup.string().email('Invalid email').required('Email is required'),
+    password: Yup.string().min(6, 'At least 6 characters').required('Password required')
+  })
+
+  const forgotSchema = Yup.object({
+    email: Yup.string().email('Invalid email').required('Email is required')
+  })
+
+  const resetSchema = Yup.object({
+    password: Yup.string().min(6, 'At least 6 characters').required('Password required'),
+    confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Confirm your password')
+  })
+
+  const authForm = useFormik({
+    initialValues: { name: '', email: '', password: '', confirmPassword: '' },
+    validationSchema: authView === 'signup' ? registerSchema : authView === 'forgot' ? forgotSchema : authView === 'reset' ? resetSchema : loginSchema,
+    onSubmit: async (values) => {
+      setAuthError(null)
+      setSuccessMessage(null)
+      setLoading(true)
+      try {
+        let res;
+        if (authView === 'login') {
+          res = await authAPI.login(values.email, values.password)
+        } else if (authView === 'signup') {
+          res = await authAPI.register(values.name, values.email, values.password)
+        } else if (authView === 'forgot') {
+          await authAPI.forgotPassword(values.email)
+          setSuccessMessage('Reset link sent! Check your console.')
+          setLoading(false)
+          return
+        } else if (authView === 'reset') {
+          await authAPI.resetPassword(resetToken, values.password)
+          setSuccessMessage('Password updated! You can now login.')
+          setAuthView('login')
+          setLoading(false)
+          return
+        }
+
+        localStorage.setItem('token', res.token)
+        localStorage.setItem('user', JSON.stringify(res.user))
+        setUser(res.user)
+        setShowAuth(false)
+        authForm.resetForm()
+      } catch (err) {
+        setAuthError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+  })
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
     if (token && userData) {
       setUser(JSON.parse(userData))
+    }
+
+    // Handle Reset Password Route
+    const path = window.location.pathname
+    if (path.startsWith('/reset-password/')) {
+      const token = path.split('/').pop()
+      setResetToken(token)
+      setAuthView('reset')
+      setShowAuth(true)
+      // Clean up URL
+      window.history.replaceState({}, document.title, "/")
     }
   }, [])
 
@@ -296,32 +372,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
-  const handleAuth = async (e) => {
-    e.preventDefault()
-    setAuthError(null)
-    setLoading(true)
-    try {
-      let res;
-      if (isLogin) {
-        res = await authAPI.login(userEmail, userPassword)
-      } else {
-        if (!userName.trim()) throw new Error('Please enter your name.')
-        res = await authAPI.register(userName.trim(), userEmail, userPassword)
-      }
-
-      localStorage.setItem('token', res.token)
-      localStorage.setItem('user', JSON.stringify(res.user))
-      setUser(res.user)
-      setShowAuth(false)
-      setUserName('')
-      setUserEmail('')
-      setUserPassword('')
-    } catch (err) {
-      setAuthError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // handleAuth replaced by authForm.handleSubmit
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -861,10 +912,10 @@ function App() {
                             chatHistory.map((msg, i) => (
                               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.role === 'user'
-                                    ? 'bg-indigo-600 text-white rounded-tr-none'
-                                    : msg.role === 'error'
-                                      ? 'bg-red-500/20 text-red-500 border border-red-500/20'
-                                      : 'bg-white/5 text-slate-300 border border-white/5 rounded-tl-none'
+                                  ? 'bg-indigo-600 text-white rounded-tr-none'
+                                  : msg.role === 'error'
+                                    ? 'bg-red-500/20 text-red-500 border border-red-500/20'
+                                    : 'bg-white/5 text-slate-300 border border-white/5 rounded-tl-none'
                                   }`}>
                                   {msg.content}
                                 </div>
@@ -1068,60 +1119,97 @@ function App() {
                   <User className="w-6 h-6 md:w-8 md:h-8 text-white" />
                 </div>
                 <h3 className="text-2xl md:text-3xl font-black text-white italic tracking-tight mb-2">
-                  {isLogin ? 'Welcome Back' : 'Create Account'}
+                  {authView === 'login' ? 'Welcome Back' :
+                    authView === 'signup' ? 'Create Account' :
+                      authView === 'forgot' ? 'Forgot Password' : 'Reset Password'}
                 </h3>
                 <p className="text-slate-400 text-sm font-medium">
-                  {isLogin ? 'Login to access your summaries' : 'Register to save your analysis history'}
+                  {authView === 'login' ? 'Login to access your summaries' :
+                    authView === 'signup' ? 'Register to save your analysis history' :
+                      authView === 'forgot' ? 'Enter your email to receive a reset link' : 'Enter your new password below'}
                 </p>
               </div>
 
-              <form onSubmit={handleAuth} className="space-y-3 md:space-y-4">
-                {!isLogin && (
+              <form onSubmit={authForm.handleSubmit} className="space-y-3 md:space-y-4">
+                {authView === 'signup' && (
                   <div className="space-y-1.5 md:space-y-2">
                     <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Full Name</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <input
+                        name="name"
                         type="text"
-                        required
                         placeholder="Karan Thakar"
-                        className="w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
+                        className={`w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border ${authForm.errors.name && authForm.touched.name ? 'border-red-500/50' : 'border-white/5'} rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm`}
+                        {...authForm.getFieldProps('name')}
                       />
                     </div>
+                    {authForm.errors.name && authForm.touched.name && <p className="text-[10px] text-red-500 ml-4 font-bold">{authForm.errors.name}</p>}
                   </div>
                 )}
 
-                <div className="space-y-1.5 md:space-y-2">
-                  <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
-                  <div className="relative">
-                    <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                    <input
-                      type="email"
-                      required
-                      placeholder="karan@example.com"
-                      className="w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
-                      value={userEmail}
-                      onChange={(e) => setUserEmail(e.target.value)}
-                    />
+                {(authView === 'login' || authView === 'signup' || authView === 'forgot') && (
+                  <div className="space-y-1.5 md:space-y-2">
+                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email Address</label>
+                    <div className="relative">
+                      <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        name="email"
+                        type="email"
+                        placeholder="karan@example.com"
+                        className={`w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border ${authForm.errors.email && authForm.touched.email ? 'border-red-500/50' : 'border-white/5'} rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm`}
+                        {...authForm.getFieldProps('email')}
+                      />
+                    </div>
+                    {authForm.errors.email && authForm.touched.email && <p className="text-[10px] text-red-500 ml-4 font-bold">{authForm.errors.email}</p>}
                   </div>
-                </div>
+                )}
 
-                <div className="space-y-1.5 md:space-y-2">
-                  <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      className="w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border border-white/5 rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm"
-                      value={userPassword}
-                      onChange={(e) => setUserPassword(e.target.value)}
-                    />
+                {(authView === 'login' || authView === 'signup' || authView === 'reset') && (
+                  <div className="space-y-1.5 md:space-y-2">
+                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        name="password"
+                        type="password"
+                        placeholder="••••••••"
+                        className={`w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border ${authForm.errors.password && authForm.touched.password ? 'border-red-500/50' : 'border-white/5'} rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm`}
+                        {...authForm.getFieldProps('password')}
+                      />
+                    </div>
+                    {authForm.errors.password && authForm.touched.password && <p className="text-[10px] text-red-500 ml-4 font-bold">{authForm.errors.password}</p>}
                   </div>
-                </div>
+                )}
+
+                {authView === 'reset' && (
+                  <div className="space-y-1.5 md:space-y-2">
+                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Confirm Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        className={`w-full h-11 md:h-12 pl-12 pr-4 bg-slate-900/50 border ${authForm.errors.confirmPassword && authForm.touched.confirmPassword ? 'border-red-500/50' : 'border-white/5'} rounded-xl text-white placeholder:text-slate-700 focus:border-indigo-500/50 outline-none transition-all text-sm`}
+                        {...authForm.getFieldProps('confirmPassword')}
+                      />
+                    </div>
+                    {authForm.errors.confirmPassword && authForm.touched.confirmPassword && <p className="text-[10px] text-red-500 ml-4 font-bold">{authForm.errors.confirmPassword}</p>}
+                  </div>
+                )}
+
+                {authView === 'login' && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setAuthView('forgot')}
+                      className="text-[10px] font-bold text-slate-500 hover:text-indigo-400"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                )}
 
                 {authError && (
                   <motion.div
@@ -1134,23 +1222,61 @@ function App() {
                   </motion.div>
                 )}
 
+                {successMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-2 text-emerald-500 text-[10px] md:text-xs font-bold bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>{successMessage}</span>
+                  </motion.div>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full h-12 md:h-14 rounded-xl bg-white text-slate-950 font-black text-sm md:text-md hover:bg-indigo-50 transition-all shadow-xl shadow-white/5 active:scale-95 disabled:opacity-50 mt-2 md:mt-4"
                 >
-                  {loading ? 'Processing...' : isLogin ? 'Login to Axon' : 'Create Account'}
+                  {loading ? 'Processing...' :
+                    authView === 'login' ? 'Login to Axon' :
+                      authView === 'signup' ? 'Create Account' :
+                        authView === 'forgot' ? 'Send Reset Link' : 'Update Password'}
                 </button>
 
                 <p className="text-center text-xs md:text-sm text-slate-500 pt-2">
-                  {isLogin ? "Don't have an account? " : "Already have an account? "}
-                  <button
-                    type="button"
-                    onClick={() => { setIsLogin(!isLogin); setAuthError(null); }}
-                    className="text-indigo-400 font-bold hover:underline"
-                  >
-                    {isLogin ? 'Sign Up' : 'Login'}
-                  </button>
+                  {authView === 'login' ? "Don't have an account? " :
+                    authView === 'signup' ? "Already have an account? " : ""}
+
+                  {authView === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => { setAuthView('signup'); setAuthError(null); }}
+                      className="text-indigo-400 font-bold hover:underline"
+                    >
+                      Sign Up
+                    </button>
+                  )}
+
+                  {authView === 'signup' && (
+                    <button
+                      type="button"
+                      onClick={() => { setAuthView('login'); setAuthError(null); }}
+                      className="text-indigo-400 font-bold hover:underline"
+                    >
+                      Login
+                    </button>
+                  )}
+
+                  {(authView === 'forgot' || authView === 'reset') && (
+                    <button
+                      type="button"
+                      onClick={() => { setAuthView('login'); setAuthError(null); }}
+                      className="text-indigo-400 font-bold hover:underline"
+                    >
+                      Back to Login
+                    </button>
+                  )}
                 </p>
               </form>
             </motion.div>
@@ -1224,6 +1350,8 @@ function App() {
                             <button
                               onClick={() => {
                                 setResult({ summary: s.summary, key_points: s.keyPoints });
+                                setCurrentSummaryId(s._id);
+                                setChatHistory([]); // Clear chat for new document
                                 setView('tool');
                                 setShowHistory(false);
                               }}

@@ -104,12 +104,14 @@ const Model3D = ({ modelUrl }) => {
                 <pointLight position={[0, 5, 0]} intensity={2} color="#ffffff" />
 
                 <Suspense fallback={
-                    <Html center>
-                        <div className="flex flex-col items-center gap-4 w-[300px]">
-                            <NeuralSphere />
-                            <span className="text-indigo-400/50 text-xs font-mono animate-pulse text-center">Initializing Axon Neural Link...</span>
-                        </div>
-                    </Html>
+                    <group>
+                        <NeuralSphere />
+                        <Html center>
+                            <div className="flex flex-col items-center gap-4 w-[300px] mt-24">
+                                <span className="text-indigo-400/50 text-xs font-mono animate-pulse text-center">Initializing Axon Neural Link...</span>
+                            </div>
+                        </Html>
+                    </group>
                 }>
                     <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
                         {modelUrl ? (

@@ -128,12 +128,19 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
             Keep it professional and concise.
         `;
 
+        console.log('Sending Prompt to Gemini...');
         const result = await model.generateContent(prompt);
+
+        if (!result || !result.response) {
+            throw new Error('Gemini API returned an empty response');
+        }
+
         const responseText = result.response.text();
 
         res.json({ reply: responseText });
 
     } catch (error) {
+        console.error('Chat Error:', error);
         res.status(500).json({ error: error.message });
     }
 });

@@ -73,4 +73,64 @@ router.post('/login', async (req, res) => {
     }
 });
 
+const crypto = require('crypto');
+
+// ... (existing code imports)
+
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User with this email does not exist' });
+        }
+
+        // Create reset token
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+        await user.save();
+
+        // MOCK EMAIL SENDER (Logs to console)
+        console.log('--- FORGOT PASSWORD DEBUG ---');
+        console.log(`To: ${email}`);
+        console.log(`Reset Token: ${resetToken}`);
+        console.log(`Reset Link: http://localhost:5173/reset-password/${resetToken}`);
+        console.log('------------------------------');
+
+        res.json({ message: 'Password reset link sent to email (check console in development)' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Reset Password
+router.post('/reset-password/:token', async (req, res) => {
+    try {
+        const { password } = req.body;
+        const user = await User.findOne({
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Password reset token is invalid or has expired' });
+        }
+
+        // Set new password
+        user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        res.json({ message: 'Password has been reset successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
