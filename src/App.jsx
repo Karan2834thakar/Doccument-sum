@@ -44,6 +44,7 @@ function App() {
   const [isLogin, setIsLogin] = useState(true)
   const [authView, setAuthView] = useState('login') // 'login', 'signup', 'forgot', 'reset'
   const [resetToken, setResetToken] = useState(null)
+  const [resetTokenFromAPI, setResetTokenFromAPI] = useState(null)
   const [authError, setAuthError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [demoText, setDemoText] = useState('')
@@ -91,8 +92,9 @@ function App() {
         } else if (authView === 'signup') {
           res = await authAPI.register(values.name, values.email, values.password)
         } else if (authView === 'forgot') {
-          await authAPI.forgotPassword(values.email)
-          setSuccessMessage('Reset link sent! Check your console.')
+          const res = await authAPI.forgotPassword(values.email)
+          setSuccessMessage(res.message)
+          setResetTokenFromAPI(res.resetToken)
           setLoading(false)
           return
         } else if (authView === 'reset') {
@@ -1226,10 +1228,23 @@ function App() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-2 text-emerald-500 text-[10px] md:text-xs font-bold bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20"
+                    className="flex flex-col gap-3 text-emerald-500 text-[10px] md:text-xs font-bold bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20"
                   >
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    <span>{successMessage}</span>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      <span>{successMessage}</span>
+                    </div>
+                    {resetTokenFromAPI && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.location.href = `${window.location.origin}/reset-password/${resetTokenFromAPI}`;
+                        }}
+                        className="w-full py-2 bg-emerald-500 text-slate-950 rounded-lg font-black uppercase tracking-tighter hover:bg-emerald-400 transition-all text-[10px]"
+                      >
+                        Click here to Reset Password
+                      </button>
+                    )}
                   </motion.div>
                 )}
 

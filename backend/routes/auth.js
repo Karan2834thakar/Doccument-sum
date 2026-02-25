@@ -97,11 +97,13 @@ router.post('/forgot-password', async (req, res) => {
         // MOCK EMAIL SENDER (Logs to console)
         console.log('--- FORGOT PASSWORD DEBUG ---');
         console.log(`To: ${email}`);
-        console.log(`Reset Token: ${resetToken}`);
-        console.log(`Reset Link: http://localhost:5173/reset-password/${resetToken}`);
+        console.log(`Token: ${resetToken}`);
         console.log('------------------------------');
 
-        res.json({ message: 'Password reset link sent to email (check console in development)' });
+        res.json({
+            message: 'Password reset link generated (see button below)',
+            resetToken: resetToken
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
