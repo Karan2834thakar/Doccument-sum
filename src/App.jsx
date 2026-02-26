@@ -57,6 +57,17 @@ function App() {
   const [currentSummaryId, setCurrentSummaryId] = useState(null)
   const uploadSectionRef = useRef(null)
 
+  // Diagnostic Log
+  useEffect(() => {
+    console.log('App State Update:', {
+      hasUser: !!user,
+      view,
+      currentSummaryId,
+      hasResult: !!result,
+      chatHistoryCount: chatHistory.length
+    });
+  }, [user, view, currentSummaryId, result, chatHistory]);
+
   // Validation Schemas
   const loginSchema = Yup.object({
     email: Yup.string().email('Invalid email').required('Email is required'),
@@ -414,21 +425,51 @@ function App() {
   }
 
   const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!chatMessage.trim() || !currentSummaryId || isChatting) return;
+    if (e) e.preventDefault();
 
-    const userMsg = { role: 'user', content: chatMessage };
+    // Explicitly log the click event
+    console.log('🔥 handleSendMessage TRIGGERED');
+    console.log('--- Context ---');
+    console.log('Message:', chatMessage);
+    console.log('Summary ID:', currentSummaryId);
+    console.log('Is Chatting:', isChatting);
+    console.log('User:', user?.name);
+
+    if (!chatMessage || !chatMessage.trim()) {
+      console.warn('Empty message, ignoring.');
+      return;
+    }
+
+    if (!currentSummaryId) {
+      console.error('CRITICAL: No currentSummaryId found!');
+      setChatHistory(prev => [...prev, {
+        role: 'error',
+        content: 'System Error: No document reference found. Please try re-uploading the file.'
+      }]);
+      return;
+    }
+
+    if (isChatting) {
+      console.warn('Already chatting, ignoring click.');
+      return;
+    }
+
+    const userMsg = { role: 'user', content: chatMessage.trim() };
     setChatHistory(prev => [...prev, userMsg]);
     setChatMessage('');
     setIsChatting(true);
 
     try {
-      const res = await summaryAPI.chat(currentSummaryId, chatMessage);
+      console.log('📡 Sending request to backend...');
+      const res = await summaryAPI.chat(currentSummaryId, userMsg.content);
+      console.log('✅ Received response from backend:', res);
       setChatHistory(prev => [...prev, { role: 'ai', content: res.reply }]);
     } catch (err) {
-      setChatHistory(prev => [...prev, { role: 'error', content: err.message || 'Failed to get response.' }]);
+      console.error('❌ Chat API Failure:', err);
+      setChatHistory(prev => [...prev, { role: 'error', content: err.message || 'The server failed to respond. Please check your connection.' }]);
     } finally {
       setIsChatting(false);
+      console.log('🏁 Chat flow complete.');
     }
   }
 
@@ -935,19 +976,35 @@ function App() {
                           )}
                         </div>
 
-                        <form onSubmit={handleSendMessage} className="relative">
+                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
                           <input
                             type="text"
                             placeholder="What's the main goal of this report?"
                             className="w-full h-14 pl-6 pr-14 bg-slate-900 border border-white/5 rounded-2xl text-white placeholder:text-slate-600 focus:border-indigo-500/50 outline-none transition-all"
                             value={chatMessage}
-                            onChange={(e) => setChatMessage(e.target.value)}
+                            onChange={(e) => {
+                              console.log('Input update:', e.target.value);
+                              setChatMessage(e.target.value);
+                            }}
                             disabled={isChatting}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessage();
+                              }
+                            }}
                           />
                           <button
-                            type="submit"
-                            disabled={!chatMessage.trim() || isChatting}
-                            className="absolute right-2 top-2 w-10 h-10 bg-indigo-600 hover:bg-indigo-500 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-50"
+                            type="button"
+                            onClick={(e) => {
+                              console.log('Button clicked');
+                              handleSendMessage(e);
+                            }}
+                            disabled={isChatting || !chatMessage.trim()}
+                            className={`absolute right-2 top-2 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all z-20 ${isChatting || !chatMessage.trim()
+                                ? 'bg-slate-800 opacity-50 cursor-not-allowed'
+                                : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 cursor-pointer'
+                              }`}
                           >
                             <Send className="w-5 h-5" />
                           </button>
