@@ -123,28 +123,73 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
         if (!summary) return res.status(404).json({ error: 'Summary not found' });
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
         const context = summary.fullText || summary.summary;
 
-        const prompt = `
-            You are an AI assistant analyzing a document. 
-            Document Context: ${context}
-            
-            User Question: ${message}
-            
-            Answer the question based ONLY on the document context provided. If the answer is not in the context, say you don't know. 
-            Keep it professional and concise.
-        `;
+        // Comprehensive list of models to try for free/standard tiers
+        const modelsToTry = [
+            "gemini-1.5-flash-latest",
+            "gemini-1.5-flash",
+            "gemini-pro",
+            "gemini-1.5-pro",
+            "gemini-1.5-flash-8b",
+            "gemini-1.0-pro"
+        ];
 
-        console.log('Sending Prompt to Gemini...');
-        const result = await model.generateContent(prompt);
+        let responseText = null;
+        let lastError = null;
+        let attemptedModels = [];
 
-        if (!result || !result.response) {
-            throw new Error('Gemini API returned an empty response');
+        for (const modelName of modelsToTry) {
+            attemptedModels.push(modelName);
+            try {
+                console.log(`📡 [V3] Attempting Gemini model: ${modelName}...`);
+                const model = genAI.getGenerativeModel({ model: modelName });
+
+                const prompt = `
+                    You are an AI assistant analyzing a document. 
+                    Document Context: ${context}
+                    
+                    User Question: ${message}
+                    
+                    Answer the question based ONLY on the document context provided. If the answer is not in the context, say you don't know. 
+                    Keep it professional and concise.
+                `;
+
+                const result = await model.generateContent(prompt);
+
+                if (result && result.response) {
+                    responseText = result.response.text();
+                    if (responseText) {
+                        console.log(`✅ [V3] Success with model: ${modelName}`);
+                        break;
+                    }
+                }
+            } catch (err) {
+                const errStr = String(err).toLowerCase();
+                console.warn(`⚠️ [V3] Model ${modelName} failed:`, err.message);
+
+                lastError = err;
+
+                // Continue to next model if it's a model-not-found, version issue, or unsupported error
+                const isNotFoundError = errStr.includes('not found') || errStr.includes('404');
+                const isUnsupportedError = errStr.includes('not supported') || errStr.includes('unsupported') || errStr.includes('not available');
+
+                if (isNotFoundError || isUnsupportedError) {
+                    continue;
+                } else {
+                    // Stop if it's a critical error like 401 (Invalid Key) or 429 (Quota)
+                    break;
+                }
+            }
         }
 
-        const responseText = result.response.text();
+        if (!responseText) {
+            const finalError = lastError ? lastError.message : 'All models failed';
+            console.error('Final Chat Error After Multiple Attempts:', finalError);
+            return res.status(500).json({
+                error: `[V3_MODEL_ERROR] Gemini Error: ${finalError}. (Models tried: ${attemptedModels.join(', ')}). Please verify your API key in Google AI Studio.`
+            });
+        }
 
         res.json({ reply: responseText });
 

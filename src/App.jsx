@@ -345,27 +345,40 @@ function App() {
         // Save to backend if logged in
         if (user) {
           try {
+            console.log('📡 Attempting to save summary to cloud...');
             const saved = await summaryAPI.save(file.name, file.type || 'document', summaryData.summary, summaryData.key_points, text)
+            console.log('✅ Summary saved successfully. ID:', saved.summary._id);
             setCurrentSummaryId(saved.summary._id)
           } catch (saveErr) {
             console.error('Failed to save summary:', saveErr)
+            setError(`Analysis complete, but failed to save to history: ${saveErr.message}. You can still read the summary, but chat may be unavailable.`)
           }
+        } else {
+          console.warn('No user logged in, summary will not be saved to cloud.');
+          setError('Please login to save your analysis and enable chat features.')
         }
-      } catch {
+      } catch (err) {
+        console.error('Catch block in handleUpload:', err);
         const fallbackSummary = cleanResponseText(text) || 'Analysis complete.'
-        setResult({
+        const summaryData = {
           summary: fallbackSummary,
           key_points: []
-        })
+        }
+        setResult(summaryData)
 
         // Save to backend if logged in
         if (user) {
           try {
+            console.log('📡 Attempting to save fallback summary to cloud...');
             const saved = await summaryAPI.save(file.name, file.type || 'document', fallbackSummary, [], text)
+            console.log('✅ Fallback summary saved. ID:', saved.summary._id);
             setCurrentSummaryId(saved.summary._id)
           } catch (saveErr) {
-            console.error('Failed to save summary:', saveErr)
+            console.error('Failed to save fallback summary:', saveErr)
+            setError(`Analysis complete, but failed to save to history: ${saveErr.message}`)
           }
+        } else {
+          setError('Please login to enable chat features.')
         }
       }
     } catch (err) {
@@ -1002,8 +1015,8 @@ function App() {
                             }}
                             disabled={isChatting || !chatMessage.trim()}
                             className={`absolute right-2 top-2 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all z-20 ${isChatting || !chatMessage.trim()
-                                ? 'bg-slate-800 opacity-50 cursor-not-allowed'
-                                : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 cursor-pointer'
+                              ? 'bg-slate-800 opacity-50 cursor-not-allowed'
+                              : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 cursor-pointer'
                               }`}
                           >
                             <Send className="w-5 h-5" />
