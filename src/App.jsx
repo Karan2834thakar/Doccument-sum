@@ -426,7 +426,7 @@ function App() {
       const res = await summaryAPI.chat(currentSummaryId, chatMessage);
       setChatHistory(prev => [...prev, { role: 'ai', content: res.reply }]);
     } catch (err) {
-      setChatHistory(prev => [...prev, { role: 'error', content: 'Failed to get response.' }]);
+      setChatHistory(prev => [...prev, { role: 'error', content: err.message || 'Failed to get response.' }]);
     } finally {
       setIsChatting(false);
     }

@@ -106,6 +106,15 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 router.post('/:id/chat', authMiddleware, async (req, res) => {
     try {
         const { message } = req.body;
+
+        // Check for API key
+        if (!process.env.GEMINI_API_KEY) {
+            console.error('Missing GEMINI_API_KEY in environment variables');
+            return res.status(500).json({
+                error: 'Gemini API key is not configured on the server. Please check environment variables on your hosting provider (e.g., Render).'
+            });
+        }
+
         const summary = await Summary.findOne({
             _id: req.params.id,
             userId: req.userId
@@ -140,8 +149,17 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
         res.json({ reply: responseText });
 
     } catch (error) {
-        console.error('Chat Error:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Chat Error Details:', error);
+
+        // Handle specific Gemini errors if possible
+        let errorMessage = error.message;
+        if (error.message.includes('API_KEY_INVALID')) {
+            errorMessage = 'Invalid Gemini API key. Please check your configuration.';
+        } else if (error.message.includes('SAFETY')) {
+            errorMessage = 'The response was blocked due to safety filters.';
+        }
+
+        res.status(500).json({ error: errorMessage });
     }
 });
 
