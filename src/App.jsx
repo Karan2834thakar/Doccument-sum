@@ -584,12 +584,12 @@ function App() {
           >
 
             {/* Hero Section */}
-            <section className="relative pt-28 md:pt-40 pb-16 md:pb-20 px-4 md:px-6 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden">
+            <section className="relative py-20 md:py-28 px-4 md:px-6 flex flex-col items-center justify-center text-center overflow-hidden">
 
-              {/* Central Visualization Area - Moved Up */}
-              <div className="w-full max-w-4xl h-[200px] xs:h-[250px] md:h-[350px] relative mb-4 md:mb-6">
+              {/* Central Visualization Area - Compact */}
+              <div className="w-full max-w-4xl h-[180px] xs:h-[220px] md:h-[300px] relative mb-2 md:mb-4">
                 <div className="absolute inset-0 z-20 flex items-center justify-center">
-                  <Model3D modelUrl="/models/model.obj" />
+                  <Model3D modelUrl="/models/Copilot3D-6964a5af-4d1f-4716-abfe-5620e15ed1a8.glb" className="h-[300px]" />
                 </div>
               </div>
 
@@ -646,20 +646,38 @@ function App() {
                   <span>View Demo</span>
                 </button>
               </motion.div>
+
             </section>
 
+            {/* Supplemental Model Visualizer - Visual Bridge */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="w-full max-w-4xl mx-auto h-[250px] md:h-[300px] relative mt-16 md:mt-24 mb-12 flex flex-col items-center justify-center"
+            >
+              <div className="w-full h-full flex items-center justify-center">
+                <Model3D modelUrl="/models/model.obj" customScale={12} className="h-[300px]" />
+              </div>
+              <div className="flex items-center gap-2 opacity-40 mt-4">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-indigo-400">Axon Neural Core</span>
+              </div>
+            </motion.div>
+
             {/* Features Section */}
-            <section id="features" className="py-20 md:py-32 px-4 md:px-6 max-w-7xl mx-auto">
-              <div className="text-center mb-16 md:mb-20">
+            <section id="features" className="py-20 md:py-28 px-4 md:px-6 max-w-7xl mx-auto">
+              <div className="text-center mb-12 md:mb-16">
                 <h2 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 italic tracking-tight">Powerful Core Features</h2>
                 <p className="text-slate-500 max-w-xl mx-auto text-sm md:text-base px-4">Engineered for quality, speed, and uncompromising privacy.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
                 {[
                   {
                     icon: <BrainCircuit className="w-6 h-6 md:w-8 md:h-8" />,
-                    title: "Nueron-Link AI",
+                    title: "Neuron-Link AI",
                     desc: "Uses contextual understanding to maintain document tone and intent.",
                     color: "text-indigo-400"
                   },
@@ -694,7 +712,7 @@ function App() {
             </section>
 
             {/* Process Section */}
-            <section id="process" className="py-20 md:py-32 bg-slate-900/40 relative overflow-hidden">
+            <section id="process" className="py-20 md:py-28 bg-slate-900/40 relative overflow-hidden">
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#6366f1 0.5px, transparent 0.5px)", backgroundSize: "32px 32px" }}></div>
 
               <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
@@ -734,8 +752,8 @@ function App() {
             </section>
 
             {/* Security Section */}
-            <section id="security" className="py-20 md:py-32 px-4 md:px-6">
-              <div className="max-w-4xl mx-auto glass p-10 md:p-20 rounded-[40px] md:rounded-[50px] border-indigo-500/20 relative overflow-hidden text-center">
+            <section id="security" className="py-20 md:py-28 px-4 md:px-6">
+              <div className="max-w-4xl mx-auto glass p-10 md:p-16 rounded-[40px] md:rounded-[50px] border-indigo-500/20 relative overflow-hidden text-center">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl text-center"></div>
                 <Lock className="w-12 h-12 md:w-16 md:h-16 text-indigo-400 mx-auto mb-6 md:mb-8" />
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-white italic">Bank-Grade Security</h2>
@@ -776,274 +794,285 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", damping: 25, stiffness: 100 }}
-            className="relative z-10 max-w-4xl mx-auto pt-32 md:pt-40 pb-16 md:pb-20 px-4 md:px-6 min-h-screen"
+            className="relative z-10 max-w-4xl mx-auto pt-36 md:pt-48 pb-24 md:pb-32 px-4 md:px-6 min-h-screen"
             ref={uploadSectionRef}
           >
 
-            <div className="parallax-inner space-y-8 md:space-y-12">
-              <div className="text-center md:text-left">
-                <h2 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tighter italic">AI Analysis Hub</h2>
-                <p className="text-slate-500 text-base md:text-lg">Upload document to extract executive summaries and core insights.</p>
+            <div className="parallax-inner space-y-6 md:space-y-8">
+              <div className="text-center md:text-left relative mb-6 md:mb-8">
+                <div className="flex items-center gap-3 mb-2 md:mb-3">
+                  <div className="w-8 h-1 bg-indigo-500 rounded-full"></div>
+                  <span className="text-xs md:text-sm font-black text-indigo-400 uppercase tracking-[0.3em]">Neural Interface v2.0</span>
+                </div>
+                <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter leading-none mb-3 bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
+                  AI Analysis Hub
+                </h2>
+                <p className="text-slate-500 text-sm md:text-lg font-medium max-w-2xl leading-relaxed">
+                  Deep context ingestion engine. Upload documents to extract <span className="text-slate-300">executive intelligence</span> and core structural insights.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-8 md:gap-10 group/space">
-                {/* Upload Card */}
-                <motion.div
-                  className={`glass p-6 md:p-8 rounded-[32px] md:rounded-[48px] border-white/5 shadow-3xl transition-all duration-700 relative overflow-hidden ${!file ? 'md:p-12' : 'md:p-8'}`}
-                  layout
-                >
-                  <AnimatePresence mode="wait">
-                    {!result ? (
-                      <motion.div
-                        key="upload-ui"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="space-y-6 md:space-y-8"
-                      >
-                        <label
-                          htmlFor="dropzone-file"
-                          className={`relative flex flex-col items-center justify-center w-full min-h-[280px] md:min-h-[320px] border-2 border-dashed rounded-[24px] md:rounded-[32px] cursor-pointer transition-all ${file ? 'border-indigo-500 bg-indigo-500/5 shadow-2xl shadow-indigo-500/10' : 'border-slate-800 bg-slate-900/30 hover:bg-slate-900/50 hover:border-slate-700'
-                            }`}
+              <div className="space-y-8 md:space-y-10">
+                <div className="flex flex-col items-center">
+                  {/* Upload Card */}
+                  <motion.div
+                    className={`glass p-10 md:p-14 rounded-[40px] md:rounded-[56px] border-white/5 shadow-3xl transition-all duration-700 relative overflow-hidden flex flex-col justify-center ${!file ? 'md:p-16' : 'md:p-12'}`}
+                    layout
+                  >
+                    <AnimatePresence mode="wait">
+                      {!result ? (
+                        <motion.div
+                          key="upload-ui"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="space-y-6 md:space-y-8"
                         >
-                          {loading && (
-                            <div className="absolute inset-0 bg-indigo-600/5 rounded-[24px] md:rounded-[32px] overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/30 to-transparent animate-scan" style={{ height: '50%' }}></div>
-                            </div>
-                          )}
-
-                          <div className="flex flex-col items-center justify-center p-6 md:p-8 text-center">
-                            <motion.div
-                              animate={loading ? {
-                                scale: [1, 1.15, 1],
-                                opacity: [1, 0.5, 1],
-                                rotate: [0, 5, -5, 0]
-                              } : {}}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                              className={`w-16 h-16 md:w-24 md:h-24 mb-4 md:mb-6 rounded-2xl md:rounded-3xl flex items-center justify-center border-2 transition-all shadow-2xl ${file ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-600/30' : 'bg-slate-900 text-slate-600 border-white/5'
-                                }`}
-                            >
-                              {loading ? <Cpu className="w-8 h-8 md:w-12 md:h-12" /> : file ? <CheckCircle className="w-8 h-8 md:w-12 md:h-12" /> : <FileUp className="w-8 h-8 md:w-12 md:h-12" />}
-                            </motion.div>
-
-                            {file ? (
-                              <div className="space-y-2">
-                                <p className="text-xl md:text-2xl font-black text-white italic truncate max-w-[200px] md:max-w-md">{file.name}</p>
-                                <p className="text-[10px] md:text-sm font-bold text-indigo-400 uppercase tracking-widest">{(file.size / 1024 / 1024).toFixed(2)} MB • Ready for AI</p>
-                              </div>
-                            ) : (
-                              <>
-                                <p className="text-xl md:text-2xl mb-2 md:mb-3 text-white font-bold tracking-tight italic">
-                                  Drop your intelligence here
-                                </p>
-                                <p className="text-slate-500 text-xs md:text-sm font-medium">PDF, TXT, CSV, XLSX files accepted</p>
-                              </>
-                            )}
-                          </div>
-                          <input
-                            id="dropzone-file"
-                            type="file"
-                            className="hidden"
-                            accept=".pdf,.txt,.csv,.xlsx,.xls"
-                            onChange={handleFileChange}
-                            disabled={loading}
-                          />
-                        </label>
-
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={handleUpload}
-                          disabled={!file || loading}
-                          className={`group w-full h-16 md:h-20 rounded-[20px] md:rounded-[24px] font-black text-lg md:text-xl transition-all flex items-center justify-center gap-3 md:gap-4 overflow-hidden relative ${!file || loading
-                            ? 'bg-slate-900 border border-white/5 text-slate-700 cursor-not-allowed'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xl shadow-indigo-600/30'
-                            }`}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                          {loading ? (
-                            <>
-                              <BrainCircuit className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
-                              <span className="italic text-base md:text-lg">Engaging Neuron Model...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-6 h-6 md:w-7 md:h-7" />
-                              <span className="italic uppercase tracking-wider text-base md:text-lg">Execute Summary</span>
-                            </>
-                          )}
-                        </motion.button>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="success-ui"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col sm:flex-row items-center justify-between gap-6"
-                      >
-                        <div className="flex items-center gap-4 md:gap-6">
-                          <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-500/20 text-emerald-400 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-inner border border-emerald-500/30">
-                            <CheckCircle className="w-6 h-6 md:w-8 md:h-8" />
-                          </div>
-                          <div className="text-left">
-                            <p className="text-xl md:text-3xl font-black text-white italic leading-none mb-1 md:mb-2">Analysis Complete</p>
-                            <p className="text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest truncate max-w-[150px] md:max-w-[200px]">{file.name}</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => { setFile(null); setResult(null); setError(null); }}
-                          className="w-full sm:w-auto h-12 md:h-14 px-6 md:px-8 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 text-white font-black hover:bg-white/10 text-xs md:text-sm italic transition-all active:scale-95"
-                        >
-                          New Upload
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* Error Display */}
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      className="bg-red-500/10 border border-red-500/20 p-5 md:p-6 rounded-[24px] md:rounded-[32px] flex items-start gap-4 md:gap-6 text-red-500"
-                    >
-                      <AlertCircle className="w-6 h-6 md:w-8 md:h-8 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-lg md:text-xl font-black mb-1 italic uppercase tracking-tighter">System Error 09x</p>
-                        <p className="text-sm md:text-lg leading-relaxed font-medium opacity-80">{error}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Results View */}
-                <AnimatePresence>
-                  {result && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="grid grid-cols-1 gap-8 md:gap-10"
-                    >
-                      <div className="glass p-8 md:p-14 rounded-[32px] md:rounded-[48px] border-white/5 relative shadow-3xl">
-                        <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-10 overflow-hidden">
-                          <div className="w-1 h-3 bg-indigo-500"></div>
-                          <h3 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">Executive Summary</h3>
-                          <button
-                            onClick={handleDownload}
-                            className="ml-auto p-2 rounded-xl glass hover:bg-indigo-500/20 text-indigo-400 transition-all flex items-center gap-2"
-                            title="Download PDF"
-                          >
-                            <Download className="w-5 h-5" />
-                            <span className="hidden sm:inline text-xs font-black uppercase tracking-widest">Download</span>
-                          </button>
-                        </div>
-                        <p className="text-lg md:text-2xl text-slate-200 leading-relaxed md:leading-[1.6] font-medium opacity-90 relative z-10 whitespace-pre-wrap">
-                          {result.summary}
-                        </p>
-                        <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 opacity-5 pointer-events-none">
-                          <FileText className="w-24 h-24 md:w-40 md:h-40" />
-                        </div>
-                      </div>
-
-                      {/* Chat Interface */}
-                      <div className="glass p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-white/5 bg-slate-900/30">
-                        <div className="flex items-center gap-3 mb-6">
-                          <MessageSquare className="w-6 h-6 text-indigo-400" />
-                          <h3 className="text-lg md:text-xl font-black text-white italic tracking-tight">Chat with Document</h3>
-                        </div>
-
-                        <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                          {chatHistory.length === 0 ? (
-                            <p className="text-slate-500 text-sm font-medium text-center py-10 italic">
-                              Ask me anything about this document...
-                            </p>
-                          ) : (
-                            chatHistory.map((msg, i) => (
-                              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.role === 'user'
-                                  ? 'bg-indigo-600 text-white rounded-tr-none'
-                                  : msg.role === 'error'
-                                    ? 'bg-red-500/20 text-red-500 border border-red-500/20'
-                                    : 'bg-white/5 text-slate-300 border border-white/5 rounded-tl-none'
-                                  }`}>
-                                  {msg.content}
-                                </div>
-                              </div>
-                            ))
-                          )}
-                          {isChatting && (
-                            <div className="flex justify-start">
-                              <div className="bg-white/5 p-3 rounded-2xl rounded-tl-none flex gap-1">
-                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
-                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
-                          <input
-                            type="text"
-                            placeholder="What's the main goal of this report?"
-                            className="w-full h-14 pl-6 pr-14 bg-slate-900 border border-white/5 rounded-2xl text-white placeholder:text-slate-600 focus:border-indigo-500/50 outline-none transition-all"
-                            value={chatMessage}
-                            onChange={(e) => setChatMessage(e.target.value)}
-                            disabled={isChatting || loading || !currentSummaryId}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                if (!isChatting && chatMessage.trim() && !loading && currentSummaryId) {
-                                  handleSendMessage(e);
-                                }
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              console.log('Button clicked');
-                              handleSendMessage(e);
-                            }}
-                            disabled={isChatting || !chatMessage.trim() || loading || !currentSummaryId}
-                            className={`absolute right-2 top-2 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all z-20 ${isChatting || !chatMessage.trim() || loading || !currentSummaryId
-                              ? 'bg-slate-800 opacity-50 cursor-not-allowed'
-                              : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 cursor-pointer'
+                          <label
+                            htmlFor="dropzone-file"
+                            className={`relative flex flex-col items-center justify-center w-full min-h-[350px] md:min-h-[420px] border-2 border-dashed rounded-[32px] md:rounded-[40px] cursor-pointer transition-all ${file ? 'border-indigo-500 bg-indigo-500/5 shadow-2xl shadow-indigo-500/10' : 'border-slate-800 bg-slate-900/30 hover:bg-slate-900/50 hover:border-slate-700'
                               }`}
                           >
-                            <Send className="w-5 h-5" />
-                          </button>
-                        </form>
-                      </div>
-
-                      {result.key_points && result.key_points.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                          {result.key_points.map((point, i) => (
-                            <motion.div
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: i * 0.15 }}
-                              key={i}
-                              className="group/item glass p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-white/5 hover:border-indigo-500/40 transition-all flex flex-col justify-between h-full bg-indigo-500/5"
-                            >
-                              <div>
-                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center text-indigo-400 font-black text-lg md:text-xl mb-4 md:mb-6 group-hover/item:scale-110 transition-transform">
-                                  {i + 1}
-                                </div>
-                                <p className="text-lg md:text-xl text-slate-300 leading-snug font-medium italic">{point}</p>
+                            {loading && (
+                              <div className="absolute inset-0 bg-indigo-600/5 rounded-[32px] md:rounded-[40px] overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/30 to-transparent animate-scan" style={{ height: '50%' }}></div>
                               </div>
-                            </motion.div>
-                          ))}
+                            )}
+
+                            <div className="flex flex-col items-center justify-center p-8 md:p-10 text-center">
+                              <motion.div
+                                animate={loading ? {
+                                  scale: [1, 1.15, 1],
+                                  opacity: [1, 0.5, 1],
+                                  rotate: [0, 5, -5, 0]
+                                } : {}}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                                className={`w-20 h-20 md:w-28 md:h-28 mb-6 md:mb-8 rounded-[24px] md:rounded-[32px] flex items-center justify-center border-2 transition-all shadow-2xl ${file ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-600/30' : 'bg-slate-900 text-slate-600 border-white/5'
+                                  }`}
+                              >
+                                {loading ? <Cpu className="w-10 h-10 md:w-14 md:h-14" /> : file ? <CheckCircle className="w-10 h-10 md:w-14 md:h-14" /> : <FileUp className="w-10 h-10 md:w-14 md:h-14" />}
+                              </motion.div>
+
+                              {file ? (
+                                <div className="space-y-2">
+                                  <p className="text-2xl md:text-3xl font-black text-white italic truncate max-w-[250px] md:max-w-lg">{file.name}</p>
+                                  <p className="text-xs md:text-sm font-bold text-indigo-400 uppercase tracking-widest">{(file.size / 1024 / 1024).toFixed(2)} MB • Ready for Ingestion</p>
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="text-2xl md:text-3xl mb-3 md:mb-4 text-white font-bold tracking-tight italic">
+                                    Drop Intelligence Here
+                                  </p>
+                                  <p className="text-slate-500 text-sm md:text-base font-medium">PDF, TXT, CSV, XLSX accepted</p>
+                                </>
+                              )}
+                            </div>
+                            <input
+                              id="dropzone-file"
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.txt,.csv,.xlsx,.xls"
+                              onChange={handleFileChange}
+                              disabled={loading}
+                            />
+                          </label>
+
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleUpload}
+                            disabled={!file || loading}
+                            className={`group w-full h-18 md:h-22 rounded-[24px] md:rounded-[32px] font-black text-lg md:text-2xl transition-all flex items-center justify-center gap-4 md:gap-5 overflow-hidden relative ${!file || loading
+                              ? 'bg-slate-900 border border-white/5 text-slate-700 cursor-not-allowed'
+                              : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xl shadow-indigo-600/30'
+                              }`}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                            {loading ? (
+                              <>
+                                <BrainCircuit className="w-8 h-8 md:w-10 md:h-10 animate-spin" />
+                                <span className="italic">Processing Neural Map...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-8 h-8 md:w-9 md:h-9" />
+                                <span className="italic uppercase tracking-widest leading-none">Execute Analysis</span>
+                              </>
+                            )}
+                          </motion.button>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="success-ui"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex flex-col sm:flex-row items-center justify-between gap-8 md:gap-10"
+                        >
+                          <div className="flex items-center gap-8 md:gap-10">
+                            <div className="w-20 h-20 md:w-24 md:h-24 bg-emerald-500/20 text-emerald-400 rounded-3xl md:rounded-[32px] flex items-center justify-center shadow-inner border border-emerald-500/30">
+                              <CheckCircle className="w-10 h-10 md:w-12 md:h-12" />
+                            </div>
+                            <div className="text-left">
+                              <p className="text-2xl md:text-4xl font-black text-white italic leading-none mb-2 md:mb-3">Map Complete</p>
+                              <p className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest truncate max-w-[200px] md:max-w-md">{file.name}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => { setFile(null); setResult(null); setError(null); }}
+                            className="w-full sm:w-auto h-14 md:h-16 px-8 md:px-10 rounded-2xl md:rounded-3xl bg-white/5 border border-white/10 text-white font-black hover:bg-white/10 text-sm md:text-base italic transition-all active:scale-95"
+                          >
+                            New Upload
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Error Display */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="bg-red-500/10 border border-red-500/20 p-6 md:p-8 rounded-[32px] md:rounded-[40px] flex items-start gap-6 md:gap-8 text-red-500"
+                  >
+                    <AlertCircle className="w-8 h-8 md:w-10 md:h-10 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xl md:text-2xl font-black mb-2 italic uppercase tracking-tighter">Neural Link Failure</p>
+                      <p className="text-base md:text-xl leading-relaxed font-medium opacity-80">{error}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+
+            {/* Results View */}
+            <AnimatePresence>
+              {result && (
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="grid grid-cols-1 gap-8 md:gap-10 mt-16 md:mt-24"
+                >
+                  <div className="glass p-8 md:p-12 rounded-[32px] md:rounded-[48px] border-white/5 relative shadow-3xl">
+                    <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-10 overflow-hidden">
+                      <div className="w-1 h-3 bg-indigo-500"></div>
+                      <h3 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">Executive Summary</h3>
+                      <button
+                        onClick={handleDownload}
+                        className="ml-auto p-2 rounded-xl glass hover:bg-indigo-500/20 text-indigo-400 transition-all flex items-center gap-2"
+                        title="Download PDF"
+                      >
+                        <Download className="w-5 h-5" />
+                        <span className="hidden sm:inline text-xs font-black uppercase tracking-widest">Download</span>
+                      </button>
+                    </div>
+                    <p className="text-lg md:text-2xl text-slate-200 leading-relaxed md:leading-[1.6] font-medium opacity-90 relative z-10 whitespace-pre-wrap">
+                      {result.summary}
+                    </p>
+                    <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 opacity-5 pointer-events-none">
+                      <FileText className="w-24 h-24 md:w-40 md:h-40" />
+                    </div>
+                  </div>
+
+                  {/* Chat Interface */}
+                  <div className="glass p-8 md:p-10 rounded-[32px] md:rounded-[40px] border-white/5 bg-slate-900/30">
+                    <div className="flex items-center gap-3 mb-6">
+                      <MessageSquare className="w-6 h-6 text-indigo-400" />
+                      <h3 className="text-lg md:text-xl font-black text-white italic tracking-tight">Chat with Document</h3>
+                    </div>
+
+                    <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                      {chatHistory.length === 0 ? (
+                        <p className="text-slate-500 text-sm font-medium text-center py-10 italic">
+                          Ask me anything about this document...
+                        </p>
+                      ) : (
+                        chatHistory.map((msg, i) => (
+                          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.role === 'user'
+                              ? 'bg-indigo-600 text-white rounded-tr-none'
+                              : msg.role === 'error'
+                                ? 'bg-red-500/20 text-red-500 border border-red-500/20'
+                                : 'bg-white/5 text-slate-300 border border-white/5 rounded-tl-none'
+                              }`}>
+                              {msg.content}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      {isChatting && (
+                        <div className="flex justify-start">
+                          <div className="bg-white/5 p-3 rounded-2xl rounded-tl-none flex gap-1">
+                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></div>
+                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                          </div>
                         </div>
                       )}
-                    </motion.div>
+                    </div>
+
+                    <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
+                      <input
+                        type="text"
+                        placeholder="What's the main goal of this report?"
+                        className="w-full h-14 pl-6 pr-14 bg-slate-900 border border-white/5 rounded-2xl text-white placeholder:text-slate-600 focus:border-indigo-500/50 outline-none transition-all"
+                        value={chatMessage}
+                        onChange={(e) => setChatMessage(e.target.value)}
+                        disabled={isChatting || loading || !currentSummaryId}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (!isChatting && chatMessage.trim() && !loading && currentSummaryId) {
+                              handleSendMessage(e);
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          console.log('Button clicked');
+                          handleSendMessage(e);
+                        }}
+                        disabled={isChatting || !chatMessage.trim() || loading || !currentSummaryId}
+                        className={`absolute right-2 top-2 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all z-20 ${isChatting || !chatMessage.trim() || loading || !currentSummaryId
+                          ? 'bg-slate-800 opacity-50 cursor-not-allowed'
+                          : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 cursor-pointer'
+                          }`}
+                      >
+                        <Send className="w-5 h-5" />
+                      </button>
+                    </form>
+                  </div>
+
+                  {result.key_points && result.key_points.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                      {result.key_points.map((point, i) => (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.15 }}
+                          key={i}
+                          className="group/item glass p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-white/5 hover:border-indigo-500/40 transition-all flex flex-col justify-between h-full bg-indigo-500/5"
+                        >
+                          <div>
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center text-indigo-400 font-black text-lg md:text-xl mb-4 md:mb-6 group-hover/item:scale-110 transition-transform">
+                              {i + 1}
+                            </div>
+                            <p className="text-lg md:text-xl text-slate-300 leading-snug font-medium italic">{point}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
                   )}
-                </AnimatePresence>
-              </div>
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

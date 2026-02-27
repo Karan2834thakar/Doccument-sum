@@ -69,8 +69,8 @@
   }
 }
 
-:root {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -78,6 +78,14 @@ body {
   background-color: var(--color-brand-dark);
   color: white;
   overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: white;
 }
 
 /* Glassmorphism utility */
