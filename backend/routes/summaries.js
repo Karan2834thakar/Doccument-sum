@@ -125,24 +125,37 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const context = summary.fullText || summary.summary;
 
-        // Comprehensive list of models to try for free/standard tiers
-        const modelsToTry = [
-            "gemini-1.5-flash-latest",
+        // Modern and compatible list of models based on diagnostic research
+        const baseModels = [
+            "gemini-2.0-flash",
             "gemini-1.5-flash",
-            "gemini-pro",
+            "gemini-flash-latest",
+            "gemini-pro-latest",
             "gemini-1.5-pro",
-            "gemini-1.5-flash-8b",
             "gemini-1.0-pro"
         ];
 
+        // Ensure we try both with and without "models/" prefix as some SDK versions/environments differ
+        const modelsToTry = [];
+        baseModels.forEach(m => {
+            modelsToTry.push(m);
+            if (!m.startsWith('models/')) {
+                modelsToTry.push(`models/${m}`);
+            }
+        });
+
         let responseText = null;
         let lastError = null;
+        let successfulModel = null;
         let attemptedModels = [];
 
         for (const modelName of modelsToTry) {
+            // Skip duplicates
+            if (attemptedModels.includes(modelName)) continue;
             attemptedModels.push(modelName);
+
             try {
-                console.log(`📡 [V3] Attempting Gemini model: ${modelName}...`);
+                console.log(`📡 [CHAT] Attempting model: ${modelName}...`);
                 const model = genAI.getGenerativeModel({ model: modelName });
 
                 const prompt = `
@@ -160,13 +173,14 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
                 if (result && result.response) {
                     responseText = result.response.text();
                     if (responseText) {
-                        console.log(`✅ [V3] Success with model: ${modelName}`);
+                        successfulModel = modelName;
+                        console.log(`✅ [CHAT] Success with model: ${modelName}`);
                         break;
                     }
                 }
             } catch (err) {
                 const errStr = String(err).toLowerCase();
-                console.warn(`⚠️ [V3] Model ${modelName} failed:`, err.message);
+                console.warn(`⚠️ [CHAT] Model ${modelName} failed:`, err.message);
 
                 lastError = err;
 
@@ -177,7 +191,11 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
                 if (isNotFoundError || isUnsupportedError) {
                     continue;
                 } else {
-                    // Stop if it's a critical error like 401 (Invalid Key) or 429 (Quota)
+                    // If it's a critical error (401, 429), we could stop, but let's try one more flash model just in case it's model-specific quota
+                    if (errStr.includes('429') || errStr.includes('quota')) {
+                        console.log("🛑 Quota exceeded, but continuing to next model candidate...");
+                        continue;
+                    }
                     break;
                 }
             }
@@ -187,11 +205,14 @@ router.post('/:id/chat', authMiddleware, async (req, res) => {
             const finalError = lastError ? lastError.message : 'All models failed';
             console.error('Final Chat Error After Multiple Attempts:', finalError);
             return res.status(500).json({
-                error: `[V3_MODEL_ERROR] Gemini Error: ${finalError}. (Models tried: ${attemptedModels.join(', ')}). Please verify your API key in Google AI Studio.`
+                error: `[GEMINI_ERROR] Models tried: ${attemptedModels.join(', ')}. Final Error: ${finalError}. Please verify your API key and region support.`
             });
         }
 
-        res.json({ reply: responseText });
+        res.json({
+            reply: responseText,
+            debug: { model: successfulModel }
+        });
 
     } catch (error) {
         console.error('Chat Error Details:', error);
