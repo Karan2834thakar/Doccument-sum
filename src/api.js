@@ -15,6 +15,13 @@ const apiCall = async (endpoint, options = {}) => {
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
+    // Handle 401 Unauthorized globally
+    if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        throw new Error('UNAUTHORIZED');
+    }
+
     // Check if response is actually JSON
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {

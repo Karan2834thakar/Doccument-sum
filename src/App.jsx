@@ -313,34 +313,48 @@ function App() {
         }
         return null;
       };
+      const summaryKeys = ['summary', 'professional_summary', 'professionalSummary', 'overview', 'description', 'text', 'output', 'content', 'result', 'message', 'document_summary'];
+      const pointKeys = ['key_points', 'points', 'highlights', 'insights', 'result', 'keyPoints'];
+
       let data;
+      let isJson = false;
+      let finalSummary = '';
+      let finalKeyPoints = [];
+
       try {
-        data = JSON.parse(text)
-
-        if (Array.isArray(data)) data = data[0] || {}
-        if (data.json && typeof data.json === 'object') data = data.json
-
-        const summaryKeys = ['summary', 'professional_summary', 'professionalSummary', 'overview', 'description', 'text', 'output', 'content', 'result', 'message'];
-        const pointKeys = ['key_points', 'points', 'highlights', 'insights', 'result'];
-
-        const rawSummary = findDeepestValue(data, summaryKeys);
-        const extractedKeyPoints = findDeepestArray(data, pointKeys);
-
-        let finalSummary;
-        if (rawSummary) {
-          finalSummary = cleanResponseText(rawSummary);
-        } else if (typeof data === 'string') {
-          finalSummary = cleanResponseText(data);
+        if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+          data = JSON.parse(text);
+          isJson = true;
         } else {
-          // No specific summary field found - format the entire JSON as text
-          finalSummary = formatJsonAsText(data);
+          console.warn('Response is not JSON, treating as raw string.');
+          data = text;
+        }
+
+        if (isJson) {
+          if (Array.isArray(data)) data = data[0] || {}
+          if (data.json && typeof data.json === 'object') data = data.json
+
+          const rawSummary = findDeepestValue(data, summaryKeys);
+          const extractedKeyPoints = findDeepestArray(data, pointKeys);
+
+          if (rawSummary) {
+            finalSummary = cleanResponseText(rawSummary);
+          } else if (typeof data === 'string') {
+            finalSummary = cleanResponseText(data);
+          } else {
+            finalSummary = formatJsonAsText(data);
+          }
+          finalKeyPoints = extractedKeyPoints || [];
+        } else {
+          finalSummary = cleanResponseText(text);
         }
 
         const summaryData = {
           summary: finalSummary || 'Analysis complete.',
-          key_points: extractedKeyPoints || []
-        }
-        setResult(summaryData)
+          key_points: finalKeyPoints
+        };
+
+        setResult(summaryData);
 
         // Save to backend if logged in
         if (user) {
@@ -350,36 +364,22 @@ function App() {
             console.log('✅ Summary saved successfully. ID:', saved.summary._id);
             setCurrentSummaryId(saved.summary._id)
           } catch (saveErr) {
-            console.error('Failed to save summary:', saveErr)
-            setError(`Analysis complete, but failed to save to history: ${saveErr.message}. You can still read the summary, but chat may be unavailable.`)
+            if (saveErr.message === 'UNAUTHORIZED') {
+              handleLogout();
+              setShowAuth(true);
+              setError('Your session has expired. Please login again to save your history.');
+            } else {
+              console.error('Failed to save summary:', saveErr)
+              setError(`Analysis complete, but failed to save to history: ${saveErr.message}. Session active but save failed.`)
+            }
           }
         } else {
           console.warn('No user logged in, summary will not be saved to cloud.');
           setError('Please login to save your analysis and enable chat features.')
         }
       } catch (err) {
-        console.error('Catch block in handleUpload:', err);
-        const fallbackSummary = cleanResponseText(text) || 'Analysis complete.'
-        const summaryData = {
-          summary: fallbackSummary,
-          key_points: []
-        }
-        setResult(summaryData)
-
-        // Save to backend if logged in
-        if (user) {
-          try {
-            console.log('📡 Attempting to save fallback summary to cloud...');
-            const saved = await summaryAPI.save(file.name, file.type || 'document', fallbackSummary, [], text)
-            console.log('✅ Fallback summary saved. ID:', saved.summary._id);
-            setCurrentSummaryId(saved.summary._id)
-          } catch (saveErr) {
-            console.error('Failed to save fallback summary:', saveErr)
-            setError(`Analysis complete, but failed to save to history: ${saveErr.message}`)
-          }
-        } else {
-          setError('Please login to enable chat features.')
-        }
+        console.error('Processing error in handleUpload:', err);
+        setError(`Error processing analysis: ${err.message}`);
       }
     } catch (err) {
       console.error('Upload error:', err)
@@ -479,7 +479,13 @@ function App() {
       setChatHistory(prev => [...prev, { role: 'ai', content: res.reply }]);
     } catch (err) {
       console.error('❌ Chat API Failure:', err);
-      setChatHistory(prev => [...prev, { role: 'error', content: err.message || 'The server failed to respond. Please check your connection.' }]);
+      if (err.message === 'UNAUTHORIZED') {
+        handleLogout();
+        setShowAuth(true);
+        setChatHistory(prev => [...prev, { role: 'error', content: 'Your session has expired. Please login again.' }]);
+      } else {
+        setChatHistory(prev => [...prev, { role: 'error', content: err.message || 'The server failed to respond. Please check your connection.' }]);
+      }
     } finally {
       setIsChatting(false);
       console.log('🏁 Chat flow complete.');
