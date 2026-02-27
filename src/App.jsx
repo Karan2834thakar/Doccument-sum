@@ -28,6 +28,81 @@ import {
 } from 'lucide-react'
 import { authAPI, summaryAPI } from './api'
 import Model3D from './components/Model3D'
+const cleanResponseText = (rawText) => {
+  if (!rawText || typeof rawText !== 'string') return rawText;
+  let clean = rawText.trim();
+  if (clean.startsWith('(() =>') || clean.startsWith('(function')) {
+    const returnMatch = clean.match(/return\s+([^;]+);?\s*}\s*\)\s*\(\s*\)$/s);
+    if (returnMatch) {
+      clean = returnMatch[1].trim();
+      if ((clean.startsWith('"') && clean.endsWith('"')) ||
+        (clean.startsWith("'") && clean.endsWith("'")) ||
+        (clean.startsWith('`') && clean.endsWith('`'))) {
+        clean = clean.slice(1, -1);
+      }
+    }
+  }
+  clean = clean.replace(/<(div|p|br|hr|h[1-6]|li)[^>]*>/gi, '\n');
+  clean = clean.replace(/<[^>]*>/g, '');
+  clean = clean.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  clean = clean.replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, '  ');
+  return clean.trim();
+};
+
+const formatJsonAsText = (obj, indent = '') => {
+  if (!obj || typeof obj !== 'object') return String(obj || '');
+  let result = [];
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === 'status' || key === 'processed_at') continue;
+    const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    if (Array.isArray(value)) {
+      if (value.length > 0) {
+        result.push(`${indent}${label}:`);
+        value.forEach((item) => {
+          if (typeof item === 'object') {
+            result.push(formatJsonAsText(item, indent + '  '));
+          } else {
+            result.push(`${indent}  • ${item}`);
+          }
+        });
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      result.push(`${indent}${label}:`);
+      result.push(formatJsonAsText(value, indent + '  '));
+    } else if (value) {
+      result.push(`${indent}${label}: ${value}`);
+    }
+  }
+  return result.join('\n');
+};
+
+const findDeepestValue = (obj, targetKeys) => {
+  if (!obj || typeof obj !== 'object') return null;
+  for (const key of targetKeys) {
+    if (obj[key] && typeof obj[key] === 'string' && obj[key].trim().length > 10) return obj[key];
+  }
+  for (const key in obj) {
+    if (obj[key] && typeof obj[key] === 'object') {
+      const found = findDeepestValue(obj[key], targetKeys);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+const findDeepestArray = (obj, targetKeys) => {
+  if (!obj || typeof obj !== 'object') return null;
+  for (const key of targetKeys) {
+    if (Array.isArray(obj[key]) && obj[key].length > 0) return obj[key];
+  }
+  for (const key in obj) {
+    if (obj[key] && typeof obj[key] === 'object') {
+      const found = findDeepestArray(obj[key], targetKeys);
+      if (found) return found;
+    }
+  }
+  return null;
+};
 
 function App() {
   const [view, setView] = useState('landing') // 'landing' or 'tool'
@@ -196,6 +271,7 @@ function App() {
     setLoading(true)
     setError(null)
     setResult(null)
+    setCurrentSummaryId(null)
 
     const formData = new FormData()
     formData.append('data', file)
@@ -222,97 +298,6 @@ function App() {
         return
       }
 
-      const cleanResponseText = (rawText) => {
-        if (!rawText || typeof rawText !== 'string') return rawText;
-        let clean = rawText.trim();
-
-        // Aggressively strip n8n IIFE wrappers: (() => { ... })()
-        if (clean.startsWith('(() =>') || clean.startsWith('(function')) {
-          // Try to extract what's being returned
-          const returnMatch = clean.match(/return\s+([^;]+);?\s*}\s*\)\s*\(\s*\)$/s);
-          if (returnMatch) {
-            clean = returnMatch[1].trim();
-            // Remove quotes if it's a string literal
-            if ((clean.startsWith('"') && clean.endsWith('"')) ||
-              (clean.startsWith("'") && clean.endsWith("'")) ||
-              (clean.startsWith('`') && clean.endsWith('`'))) {
-              clean = clean.slice(1, -1);
-            }
-          }
-        }
-
-        // HTML to text
-        clean = clean.replace(/<(div|p|br|hr|h[1-6]|li)[^>]*>/gi, '\n');
-        clean = clean.replace(/<[^>]*>/g, '');
-        clean = clean.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-
-        // Unescape common escape sequences
-        clean = clean.replace(/\\n/g, '\n').replace(/\\r/g, '').replace(/\\t/g, '  ');
-
-        return clean.trim();
-      };
-
-      const formatJsonAsText = (obj, indent = '') => {
-        if (!obj || typeof obj !== 'object') return String(obj || '');
-
-        let result = [];
-
-        for (const [key, value] of Object.entries(obj)) {
-          // Skip internal fields
-          if (key === 'status' || key === 'processed_at') continue;
-
-          // Format the key nicely
-          const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-          if (Array.isArray(value)) {
-            if (value.length > 0) {
-              result.push(`${indent}${label}:`);
-              value.forEach((item) => {
-                if (typeof item === 'object') {
-                  result.push(formatJsonAsText(item, indent + '  '));
-                } else {
-                  result.push(`${indent}  • ${item}`);
-                }
-              });
-            }
-          } else if (typeof value === 'object' && value !== null) {
-            result.push(`${indent}${label}:`);
-            result.push(formatJsonAsText(value, indent + '  '));
-          } else if (value) {
-            result.push(`${indent}${label}: ${value}`);
-          }
-        }
-
-        return result.join('\n');
-      };
-
-      const findDeepestValue = (obj, targetKeys) => {
-        if (!obj || typeof obj !== 'object') return null;
-        for (const key of targetKeys) {
-          if (obj[key] && typeof obj[key] === 'string' && obj[key].trim().length > 10) return obj[key];
-        }
-        for (const key in obj) {
-          if (obj[key] && typeof obj[key] === 'object') {
-            const found = findDeepestValue(obj[key], targetKeys);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-
-      const findDeepestArray = (obj, targetKeys) => {
-        if (!obj || typeof obj !== 'object') return null;
-        for (const key of targetKeys) {
-          if (Array.isArray(obj[key]) && obj[key].length > 0) return obj[key];
-        }
-        for (const key in obj) {
-          if (obj[key] && typeof obj[key] === 'object') {
-            const found = findDeepestArray(obj[key], targetKeys);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
       const summaryKeys = ['summary', 'professional_summary', 'professionalSummary', 'overview', 'description', 'text', 'output', 'content', 'result', 'message', 'document_summary'];
       const pointKeys = ['key_points', 'points', 'highlights', 'insights', 'result', 'keyPoints'];
 
@@ -361,16 +346,23 @@ function App() {
           try {
             console.log('📡 Attempting to save summary to cloud...');
             const saved = await summaryAPI.save(file.name, file.type || 'document', summaryData.summary, summaryData.key_points, text)
-            console.log('✅ Summary saved successfully. ID:', saved.summary._id);
-            setCurrentSummaryId(saved.summary._id)
+
+            const newId = saved.summary?._id || saved.summary?.id || saved.id || saved._id;
+            if (newId) {
+              console.log('✅ Summary saved successfully. ID:', newId);
+              setCurrentSummaryId(newId);
+            } else {
+              console.warn('⚠️ Summary saved but ID was not found in response:', saved);
+              setError('Analysis complete, but failed to retrieve cloud ID. Chat may be limited.');
+            }
           } catch (saveErr) {
+            console.error('Failed to save summary:', saveErr)
             if (saveErr.message === 'UNAUTHORIZED') {
               handleLogout();
               setShowAuth(true);
               setError('Your session has expired. Please login again to save your history.');
             } else {
-              console.error('Failed to save summary:', saveErr)
-              setError(`Analysis complete, but failed to save to history: ${saveErr.message}. Session active but save failed.`)
+              setError(`Analysis complete, but failed to save to cloud: ${saveErr.message}. Chat may be unavailable.`)
             }
           }
         } else {
@@ -397,8 +389,6 @@ function App() {
     setView('tool')
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
-
-  // handleAuth replaced by authForm.handleSubmit
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -1001,15 +991,14 @@ function App() {
                             placeholder="What's the main goal of this report?"
                             className="w-full h-14 pl-6 pr-14 bg-slate-900 border border-white/5 rounded-2xl text-white placeholder:text-slate-600 focus:border-indigo-500/50 outline-none transition-all"
                             value={chatMessage}
-                            onChange={(e) => {
-                              console.log('Input update:', e.target.value);
-                              setChatMessage(e.target.value);
-                            }}
-                            disabled={isChatting}
+                            onChange={(e) => setChatMessage(e.target.value)}
+                            disabled={isChatting || loading || !currentSummaryId}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                handleSendMessage();
+                                if (!isChatting && chatMessage.trim() && !loading && currentSummaryId) {
+                                  handleSendMessage(e);
+                                }
                               }
                             }}
                           />
@@ -1019,8 +1008,8 @@ function App() {
                               console.log('Button clicked');
                               handleSendMessage(e);
                             }}
-                            disabled={isChatting || !chatMessage.trim()}
-                            className={`absolute right-2 top-2 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all z-20 ${isChatting || !chatMessage.trim()
+                            disabled={isChatting || !chatMessage.trim() || loading || !currentSummaryId}
+                            className={`absolute right-2 top-2 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all z-20 ${isChatting || !chatMessage.trim() || loading || !currentSummaryId
                               ? 'bg-slate-800 opacity-50 cursor-not-allowed'
                               : 'bg-indigo-600 hover:bg-indigo-500 hover:scale-105 active:scale-95 cursor-pointer'
                               }`}
