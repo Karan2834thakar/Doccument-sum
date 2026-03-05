@@ -32,18 +32,23 @@ function LoadedModel({ url, customScale }) {
     // Apply materials once when the object is loaded
     useMemo(() => {
         if (!loadedObject) return
-        loadedObject.traverse((child) => {
-            if (child instanceof THREE.Mesh) {
-                child.material = new THREE.MeshPhysicalMaterial({
-                    color: '#818cf8',
-                    metalness: 0.9,
-                    roughness: 0.2,
-                    emissive: '#1e1b4b',
-                    emissiveIntensity: 0.2,
-                })
-            }
-        })
-    }, [loadedObject])
+
+        // Only apply stylized material for OBJ models (to maintain the "perfect" look)
+        // GLB models (like Copilot3D) will keep their "real" colors
+        if (!isGLB) {
+            loadedObject.traverse((child) => {
+                if (child instanceof THREE.Mesh) {
+                    child.material = new THREE.MeshPhysicalMaterial({
+                        color: '#818cf8',
+                        metalness: 0.9,
+                        roughness: 0.2,
+                        emissive: '#1e1b4b',
+                        emissiveIntensity: 0.2,
+                    })
+                }
+            })
+        }
+    }, [loadedObject, isGLB])
 
     const meshRef = useRef()
     useFrame((state) => {
@@ -103,8 +108,17 @@ function NeuralSphere() {
 }
 
 const Model3D = ({ modelUrl, customScale, className = "" }) => {
+    const isGLB = modelUrl?.toLowerCase().endsWith('.glb') || modelUrl?.toLowerCase().endsWith('.gltf')
+
     return (
         <div className={`w-full relative cursor-grab active:cursor-grabbing flex items-center justify-center overflow-hidden ${className}`}>
+            {/* Background Glow only for GLB models to improve visibility */}
+            {isGLB && (
+                <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-[60%] h-[60%] bg-indigo-500/10 blur-[100px] rounded-full"></div>
+                </div>
+            )}
+
             <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 8], fov: 45 }}>
                 <ambientLight intensity={1} />
                 <spotLight position={[10, 10, 10]} angle={0.3} penumbra={1} intensity={5} castShadow />

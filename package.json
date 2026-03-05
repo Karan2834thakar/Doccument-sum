@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-spring/three": "^10.0.3",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@react-three/postprocessing": "^3.0.4",
     "@tailwindcss/vite": "^4.1.18",
     "body-parser": "^2.2.2",
     "concurrently": "^9.2.1",
@@ -22,6 +24,7 @@
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-force-graph-3d": "^1.29.1",
     "three": "^0.182.0",
     "yup": "^1.7.1"
   },
