@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #6366f1;
-  --color-brand-secondary: #4f46e5;
-  --color-brand-dark: #0f172a;
+  --color-brand-primary: #10b981;
+  --color-brand-secondary: #059669;
+  --color-brand-dark: #000000;
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-scan: scan 2s linear infinite;
@@ -84,7 +84,7 @@ body {
 }
 
 ::selection {
-  background: rgba(99, 102, 241, 0.3);
+  background-color: rgba(16, 185, 129, 0.3);
   color: white;
 }
 

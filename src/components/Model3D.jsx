@@ -39,10 +39,10 @@ function LoadedModel({ url, customScale }) {
             loadedObject.traverse((child) => {
                 if (child instanceof THREE.Mesh) {
                     child.material = new THREE.MeshPhysicalMaterial({
-                        color: '#818cf8',
+                        color: '#10b981',
                         metalness: 0.9,
                         roughness: 0.2,
-                        emissive: '#1e1b4b',
+                        emissive: '#064e3b',
                         emissiveIntensity: 0.2,
                     })
                 }
@@ -96,7 +96,7 @@ function NeuralSphere() {
         <mesh ref={meshRef}>
             <sphereGeometry args={[size, 64, 64]} />
             <MeshDistortMaterial
-                color="#6366f1"
+                color="#10b981"
                 speed={2}
                 distort={0.4}
                 radius={size}
@@ -115,22 +115,22 @@ const Model3D = ({ modelUrl, customScale, className = "" }) => {
             {/* Background Glow only for GLB models to improve visibility */}
             {isGLB && (
                 <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[60%] h-[60%] bg-indigo-500/10 blur-[100px] rounded-full"></div>
+                    <div className="w-[70%] h-[70%] bg-emerald-300/20 blur-[120px] rounded-full"></div>
                 </div>
             )}
 
             <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 8], fov: 45 }}>
-                <ambientLight intensity={1} />
-                <spotLight position={[10, 10, 10]} angle={0.3} penumbra={1} intensity={5} castShadow />
-                <pointLight position={[-10, -10, -10]} intensity={2} color="#818cf8" />
-                <pointLight position={[0, 5, 0]} intensity={2} color="#ffffff" />
+                <ambientLight intensity={2.5} />
+                <spotLight position={[10, 10, 10]} angle={0.45} penumbra={1} intensity={10} castShadow />
+                <pointLight position={[-10, -10, -10]} intensity={4} color="#10b981" />
+                <pointLight position={[0, 8, 0]} intensity={3} color="#ffffff" />
 
                 <Suspense fallback={
                     <group>
                         <NeuralSphere />
                         <Html center>
                             <div className="flex flex-col items-center gap-4 w-[300px] mt-24">
-                                <span className="text-indigo-400/50 text-xs font-mono animate-pulse text-center">Initializing Axon Neural Link...</span>
+                                <span className="text-emerald-400/50 text-xs font-mono animate-pulse text-center">Initializing Axon Neural Link...</span>
                             </div>
                         </Html>
                     </group>
