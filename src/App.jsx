@@ -393,6 +393,20 @@ function App() {
     }
   }
 
+  const clearChat = () => {
+    setResult(null)
+    setChatHistory([])
+    setChatMessage('')
+    setCurrentSummaryId(null)
+    setIsChatting(false)
+  }
+
+  const clearSession = () => {
+    setFile(null)
+    setError(null)
+    clearChat()
+  }
+
   const scrollToTool = () => {
     if (!user) {
       setShowAuth(true)
@@ -815,7 +829,7 @@ function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ type: "spring", damping: 25, stiffness: 100 }}
-                  className="relative z-10 flex flex-col items-stretch gap-4 md:gap-6 p-4 md:p-6 pt-20 md:pt-28 lg:pt-32 pb-10 h-[calc(100vh-5rem)] lg:h-[calc(100vh-7rem)] max-w-[1920px] mx-auto"
+                  className="relative z-10 flex flex-col items-stretch gap-4 md:gap-6 p-4 md:p-6 pt-20 md:pt-28 lg:pt-32 pb-10 md:h-[calc(100dvh-5rem)] lg:h-[calc(100dvh-7rem)] max-w-[1920px] mx-auto overflow-y-auto"
                   ref={uploadSectionRef}
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 flex-1 h-full">
@@ -828,6 +842,7 @@ function App() {
                         handleFileChange={handleFileChange}
                         handleUpload={handleUpload}
                         setFile={setFile}
+                        onClear={clearSession}
                       />
                       {/* Error Display */}
                       <AnimatePresence>
@@ -859,6 +874,7 @@ function App() {
                         chatMessage={chatMessage}
                         setChatMessage={setChatMessage}
                         handleSendMessage={handleSendMessage}
+                        onClose={clearChat}
                       />
                     </div>
                   </div>

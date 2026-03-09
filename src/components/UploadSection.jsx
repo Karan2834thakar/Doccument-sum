@@ -1,6 +1,15 @@
 import { Upload as UploadIcon, Sparkles as SparkleIcon, File as FileIcon, X as XIcon } from 'lucide-react';
 
-const UploadSection = ({ file, loading, handleFileChange, handleUpload, setFile }) => {
+const UploadSection = ({ file, loading, handleFileChange, handleUpload, setFile, onClear }) => {
+  const handleRemove = (e) => {
+    e.preventDefault()
+    if (onClear) {
+      onClear()
+    } else {
+      setFile(null)
+    }
+  }
+
   return (
     <div className="flex flex-col h-full bg-[#0e1117] border border-white/8 rounded-2xl overflow-hidden">
 
@@ -57,7 +66,7 @@ const UploadSection = ({ file, loading, handleFileChange, handleUpload, setFile 
 
             {!loading && (
               <button
-                onClick={(e) => { e.preventDefault(); setFile(null); }}
+                onClick={handleRemove}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all text-[10px] md:text-xs font-medium"
               >
                 <XIcon className="w-3 h-3 md:w-3.5 md:h-3.5" /> Remove

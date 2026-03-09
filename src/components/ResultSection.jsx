@@ -1,7 +1,7 @@
-import { History as HistoryIcon, Bot as BotIcon, User as UserIcon, Send as SendIcon } from 'lucide-react';
+import { History as HistoryIcon, Bot as BotIcon, User as UserIcon, Send as SendIcon, X as CloseIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
-const ResultSection = ({ result, chatHistory, isChatting, chatMessage, setChatMessage, handleSendMessage }) => {
+const ResultSection = ({ result, chatHistory, isChatting, chatMessage, setChatMessage, handleSendMessage, onClose }) => {
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -19,13 +19,22 @@ const ResultSection = ({ result, chatHistory, isChatting, chatMessage, setChatMe
           <h3 className="text-white font-semibold text-sm">Analysis Output</h3>
           <p className="text-white/30 text-xs">Results will appear here after analysis</p>
         </div>
-        {/* Clear / History button */}
-        <button
-          onClick={() => alert("History feature coming soon.")}
-          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
-        >
-          <HistoryIcon className="w-4 h-4 text-white/40" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => alert("History feature coming soon.")}
+            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
+            title="History"
+          >
+            <HistoryIcon className="w-4 h-4 text-white/40" />
+          </button>
+          <button
+            onClick={() => onClose?.()}
+            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
+            title="Clear chat"
+          >
+            <CloseIcon className="w-4 h-4 text-white/40" />
+          </button>
+        </div>
       </div>
 
       {/* Chat messages area — scrollable */}
