@@ -289,7 +289,7 @@ function App() {
     formData.append('data', file)
 
     try {
-      const webhookUrl = 'https://n8n.srv1202847.hstgr.cloud/webhook/62728a15-7788-41dd-baf0-d57dbf1fed42'
+      const webhookUrl = 'https://n8n.srv1202847.hstgr.cloud/webhook/9f5f68e8-4cc1-4895-b8fd-e438ad8c6107'
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
